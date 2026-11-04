@@ -1,10 +1,10 @@
 """
-High-End Aerospace Avionics Profile Generator for Shlok Tiwari (sshloktiwarii)
+High-End Tech & Systems Engineering Profile Generator for Shlok Tiwari (sshloktiwarii)
 Featuring:
 - Asymmetric Chamfered Cockpit Geometry (45° corner cutouts + technical brackets `[ ]`)
-- Systems Flight Deck Information Architecture (Top Telemetry Ribbon → Command Hero → Split Console)
-- Flight-Deck Cyber Core & Bus Hub with animated packet flow lines
-- Aerospace Avionics 3x2 Project Console Cards with 2-line guaranteed text wrapping
+- Systems Deck Information Architecture (Telemetry Ribbon → Command Hero → Split Console)
+- Cyber Core & Circuit Bus Hub with animated packet flow lines
+- 2x3 Grid Project Showcase with large typography & guaranteed 2-line text wrapping
 - 100% Vector outline typography via fontTools Face (Audiowide, BigShouldersDisplay, IBMPlexMono)
 """
 
@@ -25,7 +25,7 @@ ASSETS = os.path.join(ROOT, "assets")
 DATA = os.path.join(ASSETS, "github.json")
 USER = "sshloktiwarii"
 
-# Tactical Aerospace Palette
+# Tactical Tech Palette
 OLIVE_ACCENT = "#8A9A5B"
 OLIVE_GLOW = "#B4C97F"
 NAVY_HERO = "#0A1324"
@@ -232,7 +232,7 @@ def text(x, y, s, size, family="Mono", fill=None, anchor=None, cls=None, spacing
 
 
 def chamfer_path(x, y, w, h, c=14):
-    """Generates a 45-degree chamfered cockpit rectangle path."""
+    """Generates a 45-degree chamfered rectangle path."""
     return (
         f"M {x+c} {y} "
         f"L {x+w-c} {y} L {x+w} {y+c} "
@@ -243,7 +243,7 @@ def chamfer_path(x, y, w, h, c=14):
 
 
 def chamfer_cell(x, y, w, h, t, fill=None, active=False, c=14, brackets=True):
-    """Aerospace cockpit module with inner hairline border and corner brackets."""
+    """Cockpit module with inner hairline border and corner brackets."""
     stroke = t["accent"] if active else t["edge"]
     inner_stroke = "rgba(255,255,255,0.06)" if t["bg"].startswith("#0") else "#EBF0F7"
     inner_fill = fill or t["cell"]
@@ -280,7 +280,7 @@ def label(x, y, s, t):
 
 
 def cyber_core_hub(cx, cy, color=OLIVE_ACCENT, glow=OLIVE_GLOW, bg=NAVY_DEEP):
-    """Central Aerospace Flight-Deck Cyber Core & Bus Hub."""
+    """Central Cyber Core & Bus Hub with animated packet flow."""
     return f"""
     <g class="core_hub" transform="translate({cx}, {cy})">
       <!-- Outgoing Circuit Bus Lines with Flowing Data Packets -->
@@ -347,7 +347,7 @@ def logo(x, y, size, name, t, fallback=None):
     )
 
 
-# ---------------------------------------------------------------- systems flight deck bento
+# ---------------------------------------------------------------- systems deck bento
 
 
 def bento(mode, data):
@@ -370,34 +370,36 @@ def bento(mode, data):
     )
     b = []
 
-    # Section 1: Top Avionics Telemetry Ribbon (1280x68)
+    # Section 1: Top Telemetry Ribbon (1280x68)
     b.append(chamfer_cell(0, 0, W, 68, t, c=12, brackets=True))
     b.append(f'<circle cx="28" cy="34" r="4.5" fill="{t["accent_bright"]}" class="beacon_live"/>')
-    b.append(text(42, 40, "AVIONICS TELEMETRY // SSHLOKTIWARII", 13, "MonoB", t["accent_bright"], spacing=".12em"))
-    b.append(text(420, 40, f"CONTRIBUTIONS: {data['total']:,}", 13, "Mono", t["fg"]))
-    b.append(text(640, 40, f"STREAK NOW: {current}D", 13, "Mono", t["fg"]))
-    b.append(text(810, 40, f"BEST STREAK: {longest}D", 13, "Mono", t["fg"]))
-    b.append(text(980, 40, f"PUBLIC REPOS: {data['repos']}", 13, "Mono", t["fg"]))
-    b.append(text(1160, 40, "SYS: NOMINAL", 13, "MonoB", t["accent_bright"]))
+    b.append(text(42, 40, "GITHUB TELEMETRY // SSHLOK TIWARI", 13, "MonoB", t["accent_bright"], spacing=".12em"))
+    b.append(text(410, 40, f"CONTRIBUTIONS: {data['total']:,}", 13, "Mono", t["fg"]))
+    b.append(text(640, 40, f"CURRENT STREAK: {current}D", 13, "Mono", t["fg"]))
+    b.append(text(830, 40, f"BEST STREAK: {longest}D", 13, "Mono", t["fg"]))
+    b.append(text(1000, 40, f"PUBLIC REPOS: {data['repos']}", 13, "Mono", t["fg"]))
+    b.append(text(1180, 40, "STATUS: ACTIVE", 13, "MonoB", t["accent_bright"]))
 
     # Section 2: Command Hero Deck (1280x360)
     y = 84
     b.append(chamfer_cell(0, y, W, 360, t, t["hero_bg"], c=16, brackets=True))
     b.append(cyber_core_hub(1020, y + 180, color=t["accent"], glow=t["accent_bright"], bg=t["cell"]))
 
-    b.append(label(46, y + 42, "COMMAND DECK // DISTRIBUTED RUNTIMES", t))
+    b.append(label(46, y + 42, "SOFTWARE ARCHITECTURE // DISTRIBUTED SYSTEMS", t))
     b.append(text(44, y + 140, "HEY, I'M SHLOK", 96, "Disp", t["fg"]))
     b.append(text(46, y + 192, "Systems Architect & Distributed Runtimes Engineer.", 21, "Mono", t["dim"]))
-    b.append(text(46, y + 248, "DIRECTIVE: I build", 19, "MonoB", t["accent_bright"]))
+    
+    # "I build" + rotating text with generous, fixed gap (zero overlap!)
+    b.append(text(46, y + 248, "I build", 22, "MonoB", t["accent_bright"]))
     for i, s in enumerate(STATUS_LINES):
-        b.append(f'<g class="rot" style="animation-delay:{i * 3}s">{text(244, y + 248, s, 19, "MonoB", t["fg"])}</g>')
-    b.append(text(46, y + 314, "COORDINATES: MUMBAI // LAT 19.0760° N · LON 72.8777° E · 0 DOWNTIME", 13, "Mono", t["dim"]))
+        b.append(f'<g class="rot" style="animation-delay:{i * 3}s">{text(160, y + 248, s, 22, "MonoB", t["fg"])}</g>')
+    b.append(text(46, y + 314, "LOCATION: MUMBAI, INDIA · HIGH-PERFORMANCE RUNTIMES & AGENT INFRASTRUCTURE", 13, "Mono", t["dim"]))
 
-    # Section 3: Midsection Avionics Deck (1280x320)
+    # Section 3: Midsection Deck (1280x320)
     y = 460
     # Left Console: Language Spectrum Matrix (w=626)
     b.append(chamfer_cell(0, y, 626, 320, t, c=14, brackets=True))
-    b.append(label(34, y + 40, "SYS-LANG // REPOSITORY SPECTRUM", t))
+    b.append(label(34, y + 40, "REPOSITORY LANGUAGE SPECTRUM", t))
     langs = data["languages"][:6]
     total = sum(x[1] for x in langs) or 1
     bx, bar = 34, ""
@@ -414,14 +416,14 @@ def bento(mode, data):
             + text(lx + 48, ly + 38, f"{100 * size / total:.0f}%  ·  {size // 1024:,} KB", 13, "Mono", t["dim"])
         )
 
-    # Right Console: Architecture & Discipline Bay (w=626)
+    # Right Console: Core Principles & Tech Stack (w=626)
     b.append(chamfer_cell(654, y, 626, 320, t, c=14, brackets=True))
-    b.append(label(688, y + 40, "SYS-SPEC // CORE WEAPONS & DISCIPLINE", t))
+    b.append(label(688, y + 40, "CORE PRINCIPLES & TECH STACK", t))
     b.append(text(686, y + 84, "SIMPLICITY IS PREREQUISITE FOR RELIABILITY.", 23, "Disp", t["fg"]))
     b.append(text(688, y + 112, "Edsger W. Dijkstra  ·  Core Discipline: LOCAL AI RUNTIMES", 13, "Mono", t["accent_bright"]))
 
     # Tech Stack Micro-Chips
-    b.append(text(688, y + 158, "DEPLOYED RUNTIMES & TOOLING", 12, "Mono", t["dim"]))
+    b.append(text(688, y + 158, "WHAT I BUILD WITH // CORE TOOLING", 12, "Mono", t["dim"]))
     x, yy = 688, y + 184
     for i, s in enumerate(STACK):
         wdt = 52 + len(s) * 10.5
@@ -435,16 +437,16 @@ def bento(mode, data):
         )
         x += wdt + 10
 
-    # Section 4: Runway Marquee & Terminal Link (1280x92)
+    # Section 4: Research & Contact Links (1280x92)
     y = 796
     b.append(chamfer_cell(0, y, 840, 92, t, c=12, brackets=True))
-    b.append(label(30, y + 32, "RESEARCH FLIGHT PATH", t))
+    b.append(label(30, y + 32, "RESEARCH & ENGINEERING FOCUS", t))
     b.append(f'<clipPath id="mq"><rect x="2" y="{y + 44}" width="836" height="40"/></clipPath>')
     line = "  ·  ".join(INTERESTS) + "  ·  "
     b.append(f'<g clip-path="url(#mq)"><g class="marq">' + text(30, y + 70, line + line, 20, "Mono", t["fg"]) + "</g></g>")
 
     b.append(chamfer_cell(860, y, 420, 92, t, c=12, brackets=True))
-    b.append(label(884, y + 32, "STATION 01 // TERMINAL LINK", t))
+    b.append(label(884, y + 32, "GITHUB PROFILE // CONNECT", t))
     b.append(text(882, y + 70, "github.com/sshloktiwarii ↗", 23, "WM", t["accent_bright"]))
 
     return svg(904, "".join(b), css, title="Shlok Tiwari, Systems Architect")
@@ -484,7 +486,7 @@ def activity(mode, data):
     body = (
         chamfer_cell(0, 0, W, 280, t, c=14, brackets=True)
         + f'<circle cx="28" cy="42" r="4.5" fill="{t["accent_bright"]}" class="beacon_live"/>'
-        + text(42, 48, f"TELEMETRY LOG // {data['total']:,} CONTRIBUTIONS THIS YEAR", 13, "MonoB", t["accent_bright"], spacing=".12em")
+        + text(42, 48, f"ACTIVITY MATRIX // {data['total']:,} CONTRIBUTIONS IN THE LAST YEAR", 13, "MonoB", t["accent_bright"], spacing=".12em")
         + text(width - 160, 48, "less", 13, "Mono", t["dim"], "end")
         + legend
         + text(width - 22, 48, "more", 13, "Mono", t["dim"])
@@ -501,7 +503,7 @@ def activity(mode, data):
     return svg(296, body, css, title=f"{data['total']} contributions in the last year")
 
 
-# ---------------------------------------------------------------- project icons & aerospace avionics cards
+# ---------------------------------------------------------------- project icons & 2x3 cards
 
 ICONS = {
     "semcache": (
@@ -565,11 +567,11 @@ def card(mode, p, data):
     meta = f"★ {stars}  ·  {where}" if stars else where
     idx = next((i + 1 for i, item in enumerate(PROJECTS) if item["slug"] == p["slug"]), 1)
     
-    # 100% guaranteed 2-line wrapping with max 46 characters
+    # 100% guaranteed 2-line wrapping with large readable typography
     desc_lines = wrap_line(p["line"], limit=46)
     desc_svg = (
-        text(28, 154, desc_lines[0], 14, "Mono", t["fg"])
-        + (text(28, 178, desc_lines[1], 14, "Mono", t["fg"]) if len(desc_lines) > 1 else "")
+        text(28, 156, desc_lines[0], 15.5, "Mono", t["fg"])
+        + (text(28, 182, desc_lines[1], 15.5, "Mono", t["fg"]) if len(desc_lines) > 1 else "")
     )
 
     card_css = (
@@ -579,20 +581,20 @@ def card(mode, p, data):
 
     body = (
         chamfer_cell(0, 0, 620, 240, t, c=14, brackets=True)
-        # Module Header Bar
-        + text(28, 42, f"[MOD-0{idx} // {p['tag'].upper()}]", 13, "MonoB", t["accent_bright"], spacing=".14em")
-        + f'<circle cx="430" cy="36" r="3.5" fill="{t["accent_bright"]}" class="beacon_live"/>'
-        + text(442, 42, "ONLINE", 12, "MonoB", t["accent_bright"])
-        + text(592, 42, meta, 13, "Mono", t["dim"], "end")
-        # Embedded Mechanical Telemetry Icon
-        + f'<path d="{chamfer_path(28, 58, 64, 64, c=8)}" fill="{t["accent_bright"]}"/>'
-        + f'<g transform="translate(34 64) scale(0.85)" fill="none" stroke="{t["bg"]}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" color="{t["bg"]}">{draw}</g>'
-        # Display Title
-        + text(108, 114, p["name"].upper(), 48, "Disp", t["fg"])
-        # 2-Line Wrapped Spec
+        # Header Bar
+        + text(28, 40, f"PROJECT 0{idx} // {p['tag'].upper()}", 13, "MonoB", t["accent_bright"], spacing=".12em")
+        + f'<circle cx="450" cy="35" r="3.5" fill="{t["accent_bright"]}" class="beacon_live"/>'
+        + text(462, 40, "ACTIVE", 12, "MonoB", t["accent_bright"])
+        + text(592, 40, meta, 13, "Mono", t["dim"], "end")
+        # Embedded Mechanical Icon
+        + f'<path d="{chamfer_path(28, 56, 64, 64, c=8)}" fill="{t["accent_bright"]}"/>'
+        + f'<g transform="translate(34 62) scale(0.85)" fill="none" stroke="{t["bg"]}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" color="{t["bg"]}">{draw}</g>'
+        # Display Title - Large & Prominent
+        + text(108, 112, p["name"].upper(), 52, "Disp", t["fg"])
+        # 2-Line Wrapped Description
         + desc_svg
         # Tech Stack Tag
-        + text(28, 214, p["stack"], 13, "Mono", t["dim"])
+        + text(28, 216, p["stack"], 13.5, "Mono", t["dim"])
     )
     return svg(240, body, card_css, w=620, title=f'{p["name"]}: {p["line"]}')
 
@@ -603,9 +605,9 @@ def footer(mode):
     body = (
         chamfer_cell(0, 0, W, 100, t, t["cell"], c=12, brackets=True)
         + f'<circle cx="34" cy="50" r="4.5" fill="{t["accent_bright"]}" class="beacon_live"/>'
-        + text(50, 56, "COMMAND STATION // MUMBAI", 14, "MonoB", t["accent_bright"], spacing=".12em")
-        + text(W / 2, 58, "SHLOK TIWARI", 30, "WM", t["fg"], "middle", spacing=".14em")
-        + text(W - 40, 56, "FLIGHT STATUS: NOMINAL ↗", 14, "Mono", t["dim"], "end")
+        + text(50, 56, "SHLOK TIWARI // MUMBAI, INDIA", 14, "MonoB", t["accent_bright"], spacing=".12em")
+        + text(W / 2, 58, "DISTRIBUTED SYSTEMS & LOCAL AI", 22, "Disp", t["fg"], "middle", spacing=".14em")
+        + text(W - 40, 56, "Thanks for stopping by ↗", 14, "Mono", t["dim"], "end")
     )
     return svg(100, body, css, title="Shlok Tiwari")
 
