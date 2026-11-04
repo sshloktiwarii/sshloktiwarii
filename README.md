@@ -19,7 +19,7 @@
 <a href="https://github.com/sshloktiwarii/Sentinel"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/project-sentinel-dark.svg?v=3"><img alt="Sentinel-AI: Guards system memory against crashes during heavy local AI model inference." src="assets/project-sentinel-light.svg?v=3" width="49%"></picture></a>
 <a href="https://github.com/sshloktiwarii/Aegis"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/project-aegis-dark.svg?v=3"><img alt="Aegis Sandbox: Stops autonomous AI agents from running destructive terminal commands or leaking keys." src="assets/project-aegis-light.svg?v=3" width="49%"></picture></a>
 <a href="https://github.com/sshloktiwarii/strata"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/project-strata-dark.svg?v=3"><img alt="Strata: A control center that runs and organizes large fleets of autonomous AI workers." src="assets/project-strata-light.svg?v=3" width="49%"></picture></a>
-<a href="https://github.com/sshloktiwarii/Cortex"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/project-cortex-dark.svg?v=3"><img alt="Cortex: The central brain that coordinates multiple specialized agents to solve big problems." src="assets/project-cortex-light.svg?v=3" width="49%"></picture></a>
+<a href="https://github.com/sshloktiwarii/VerciLumn"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/project-vercilumn-dark.svg?v=3"><img alt="VerciLumn: Real-time synchronized lyrics, audio visualizers, and playback control for macOS." src="assets/project-vercilumn-light.svg?v=3" width="49%"></picture></a>
 
 ## Say hi
 

@@ -110,13 +110,13 @@ PROJECTS = [
         stack="TypeScript · Multi-Agent Runtime · Distributed",
     ),
     dict(
-        slug="cortex",
-        name="Cortex",
-        repo="Cortex",
-        url="https://github.com/sshloktiwarii/Cortex",
-        line="The central brain that coordinates multiple specialized agents to solve big problems.",
-        tag="Cognitive Core",
-        stack="Local LLMs · Task Routing · Memory Synthesis",
+        slug="vercilumn",
+        name="VerciLumn",
+        repo="VerciLumn",
+        url="https://github.com/sshloktiwarii/VerciLumn",
+        line="Real-time synchronized lyrics, audio visualizers, and playback control for macOS.",
+        tag="macOS Runtime",
+        stack="Swift · SwiftUI · Metal Shaders · macOS",
     ),
 ]
 
@@ -602,11 +602,19 @@ ICONS = {
         ".l2{animation:float 2.5s ease-in-out infinite alternate}@keyframes float{to{transform:translateY(-3px)}}"
         ".l3{animation:float 2.5s ease-in-out .5s infinite alternate}",
     ),
-    "cortex": (
-        '<circle cx="32" cy="32" r="15" stroke-width="2.5"/>'
-        '<circle cx="32" cy="32" r="5" fill="currentColor"/>'
-        '<g class="orbit"><circle cx="14" cy="32" r="3.5" fill="currentColor"/><circle cx="50" cy="32" r="3.5" fill="currentColor"/></g>',
-        ".orbit{animation:orbit 3s ease-in-out infinite alternate;transform-origin:32px 32px}@keyframes orbit{to{transform:rotate(180deg)}}",
+    "vercilumn": (
+        '<rect x="12" y="14" width="40" height="36" rx="6" stroke-width="2.5"/>'
+        '<g class="eq1"><line x1="20" y1="36" x2="20" y2="28" stroke-width="2.5"/></g>'
+        '<g class="eq2"><line x1="26" y1="40" x2="26" y2="24" stroke-width="2.5"/></g>'
+        '<g class="eq3"><line x1="32" y1="42" x2="32" y2="22" stroke-width="2.5"/></g>'
+        '<g class="eq4"><line x1="38" y1="40" x2="38" y2="26" stroke-width="2.5"/></g>'
+        '<g class="eq5"><line x1="44" y1="36" x2="44" y2="30" stroke-width="2.5"/></g>',
+        ".eq1{animation:eq_pulse 1.1s ease-in-out infinite alternate;transform-origin:20px 32px}"
+        ".eq2{animation:eq_pulse 0.8s ease-in-out infinite alternate;transform-origin:26px 32px}"
+        ".eq3{animation:eq_pulse 1.4s ease-in-out infinite alternate;transform-origin:32px 32px}"
+        ".eq4{animation:eq_pulse 0.9s ease-in-out infinite alternate;transform-origin:38px 32px}"
+        ".eq5{animation:eq_pulse 1.2s ease-in-out infinite alternate;transform-origin:44px 32px}"
+        "@keyframes eq_pulse{0%{transform:scaleY(0.4)}100%{transform:scaleY(1.3)}}",
     ),
 }
 
