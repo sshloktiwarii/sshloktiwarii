@@ -374,11 +374,10 @@ def bento(mode, data):
     b.append(chamfer_cell(0, 0, W, 68, t, c=12, brackets=True))
     b.append(f'<circle cx="28" cy="34" r="4.5" fill="{t["accent_bright"]}" class="beacon_live"/>')
     b.append(text(42, 40, "GITHUB TELEMETRY // SSHLOK TIWARI", 13, "MonoB", t["accent_bright"], spacing=".12em"))
-    b.append(text(410, 40, f"CONTRIBUTIONS: {data['total']:,}", 13, "Mono", t["fg"]))
-    b.append(text(640, 40, f"CURRENT STREAK: {current}D", 13, "Mono", t["fg"]))
-    b.append(text(830, 40, f"BEST STREAK: {longest}D", 13, "Mono", t["fg"]))
-    b.append(text(1000, 40, f"PUBLIC REPOS: {data['repos']}", 13, "Mono", t["fg"]))
-    b.append(text(1180, 40, "STATUS: ACTIVE", 13, "MonoB", t["accent_bright"]))
+    b.append(text(450, 40, f"CONTRIBUTIONS: {data['total']:,}", 13, "Mono", t["fg"]))
+    b.append(text(690, 40, f"CURRENT STREAK: {current}D", 13, "Mono", t["fg"]))
+    b.append(text(900, 40, f"BEST STREAK: {longest}D", 13, "Mono", t["fg"]))
+    b.append(text(1090, 40, f"PUBLIC REPOS: {data['repos']}", 13, "Mono", t["fg"]))
 
     # Section 2: Command Hero Deck (1280x360)
     y = 84
