@@ -1,12 +1,10 @@
 """
-High-End Bespoke Vector SVG Profile Generator for Shlok Tiwari (sshloktiwarii)
+High-End Aerospace Avionics Profile Generator for Shlok Tiwari (sshloktiwarii)
 Featuring:
-- Custom Animated Cyber Visor Mecha Avatar (zero harsh4k boy face resemblance)
-- 3D Orbital Rings & Elliptical Gyroscope Background (zero wireframe terrain lines)
-- Modern Linear-Grade Soft Squircle Bento Grid (rx="16")
-- Clean, Uncluttered Typography (No generic pill shapes)
-- Live GitHub GraphQL stats & Real Multi-Language breakdown
-- 6 Animated Flagship Projects with Unique Kinetic Mechanical SVGs
+- Asymmetric Chamfered Cockpit Geometry (45° corner cutouts + technical brackets `[ ]`)
+- Systems Flight Deck Information Architecture (Top Telemetry Ribbon → Command Hero → Split Console)
+- Flight-Deck Cyber Core & Bus Hub with animated packet flow lines
+- Aerospace Avionics 3x2 Project Console Cards with 2-line guaranteed text wrapping
 - 100% Vector outline typography via fontTools Face (Audiowide, BigShouldersDisplay, IBMPlexMono)
 """
 
@@ -16,8 +14,6 @@ import json
 import math
 import os
 import re
-import urllib.request
-import subprocess
 
 from fontTools.pens.svgPathPen import SVGPathPen
 from fontTools.pens.transformPen import TransformPen
@@ -29,7 +25,7 @@ ASSETS = os.path.join(ROOT, "assets")
 DATA = os.path.join(ASSETS, "github.json")
 USER = "sshloktiwarii"
 
-# Signature Shlok Colors
+# Tactical Aerospace Palette
 OLIVE_ACCENT = "#8A9A5B"
 OLIVE_GLOW = "#B4C97F"
 NAVY_HERO = "#0A1324"
@@ -61,7 +57,6 @@ THEMES = {
     ),
 }
 
-# GitHub's 0-4 activity levels in Olive Green
 LEVELS = ["", "#25331C", "#435928", "#688836", OLIVE_GLOW]
 LEVELS_LIGHT = ["", "#D9E8BA", "#B2D17E", "#88AF44", "#5B7C22"]
 
@@ -73,7 +68,7 @@ PROJECTS = [
         repo="SemCache",
         url="https://github.com/sshloktiwarii/SemCache",
         line="Remembers answers from AI so you get instant responses without paying twice.",
-        tag="Performance Engine",
+        tag="Runtime Cache",
         stack="Python · Vector Cosine · In-Memory Cache",
     ),
     dict(
@@ -82,7 +77,7 @@ PROJECTS = [
         repo="AgentVault",
         url="https://github.com/sshloktiwarii/AgentVault",
         line="A black-box flight recorder that tracks every move your AI agents make in real time.",
-        tag="Security & Audit",
+        tag="Security Audit",
         stack="Rust · SQLite WAL · Telemetry",
     ),
     dict(
@@ -100,7 +95,7 @@ PROJECTS = [
         repo="Aegis",
         url="https://github.com/sshloktiwarii/Aegis",
         line="Stops autonomous AI agents from running destructive terminal commands or leaking keys.",
-        tag="Agent Security",
+        tag="Agent Boundary",
         stack="Rust · Landlock · Apple Seatbelt · AST Sanitizer",
     ),
     dict(
@@ -109,7 +104,7 @@ PROJECTS = [
         repo="strata",
         url="https://github.com/sshloktiwarii/strata",
         line="A control center that runs and organizes large fleets of autonomous AI workers.",
-        tag="Fleet Orchestration",
+        tag="Fleet Control",
         stack="TypeScript · Multi-Agent Runtime · Distributed",
     ),
     dict(
@@ -123,11 +118,11 @@ PROJECTS = [
     ),
 ]
 
-STACK = ["Rust", "Go", "Python", "TypeScript", "C++", "Linux", "Docker", "SQLite", "Redis", "React", "Next.js", "Node.js"]
+STACK = ["Rust", "Go", "Python", "TypeScript", "C++", "Linux", "Docker", "SQLite", "Redis", "React"]
 INTERESTS = [
     "distributed systems",
     "systems engineering",
-    "local-first AI",
+    "local-first AI runtimes",
     "eBPF & low latency",
     "database internals",
     "autonomous agent fleets",
@@ -233,84 +228,87 @@ def text(x, y, s, size, family="Mono", fill=None, anchor=None, cls=None, spacing
     return f'<path transform="translate({x:.1f} {y:.1f})"{c}{f} d="{d}"/>'
 
 
-def cell(x, y, w, h, t, fill=None, active=False):
-    # Soft Squircle Bento: rx="16" with subtle hairline double-border
-    primary_stroke = t["accent"] if active else (t["edge"] if not fill else fill)
-    inner_stroke = "rgba(255,255,255,0.06)" if t["bg"].startswith("#0") else "#EBF0F7"
-    inner_fill = fill or t["cell"]
+# ---------------------------------------------------------------- chamfer cockpit geometry
+
+
+def chamfer_path(x, y, w, h, c=14):
+    """Generates a 45-degree chamfered cockpit rectangle path."""
     return (
-        f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="16" fill="{inner_fill}" '
-        f'stroke="{primary_stroke}" stroke-width="1.5"/>'
-        f'<rect x="{x+1}" y="{y+1}" width="{w-2}" height="{h-2}" rx="15" fill="none" '
-        f'stroke="{inner_stroke}" stroke-width="1"/>'
+        f"M {x+c} {y} "
+        f"L {x+w-c} {y} L {x+w} {y+c} "
+        f"L {x+w} {y+h-c} L {x+w-c} {y+h} "
+        f"L {x+c} {y+h} L {x} {y+h-c} "
+        f"L {x} {y+c} Z"
     )
 
 
+def chamfer_cell(x, y, w, h, t, fill=None, active=False, c=14, brackets=True):
+    """Aerospace cockpit module with inner hairline border and corner brackets."""
+    stroke = t["accent"] if active else t["edge"]
+    inner_stroke = "rgba(255,255,255,0.06)" if t["bg"].startswith("#0") else "#EBF0F7"
+    inner_fill = fill or t["cell"]
+    path_outer = chamfer_path(x, y, w, h, c=c)
+    path_inner = chamfer_path(x + 1, y + 1, w - 2, h - 2, c=max(c - 1, 1))
+
+    res = [
+        f'<path d="{path_outer}" fill="{inner_fill}" stroke="{stroke}" stroke-width="1.5"/>',
+        f'<path d="{path_inner}" fill="none" stroke="{inner_stroke}" stroke-width="1"/>',
+    ]
+    if brackets:
+        b_len = 8
+        b_col = t["accent_bright"] if active else t["accent"]
+        res.append(
+            f'<path d="M {x-3} {y+b_len} L {x-3} {y-3} L {x+b_len} {y-3}" fill="none" stroke="{b_col}" stroke-width="1.4" opacity="0.6"/>'
+        )
+        res.append(
+            f'<path d="M {x+w+3} {y+b_len} L {x+w+3} {y-3} L {x+w-b_len} {y-3}" fill="none" stroke="{b_col}" stroke-width="1.4" opacity="0.6"/>'
+        )
+        res.append(
+            f'<path d="M {x-3} {y+h-b_len} L {x-3} {y+h+3} L {x+b_len} {y+h+3}" fill="none" stroke="{b_col}" stroke-width="1.4" opacity="0.6"/>'
+        )
+        res.append(
+            f'<path d="M {x+w+3} {y+h-b_len} L {x+w+3} {y+h+3} L {x+w-b_len} {y+h+3}" fill="none" stroke="{b_col}" stroke-width="1.4" opacity="0.6"/>'
+        )
+    return "".join(res)
+
+
 def label(x, y, s, t):
-    return text(x, y, s.upper(), 14, fill=t["dim"], spacing=".16em")
+    return text(x, y, s.upper(), 13, fill=t["dim"], spacing=".16em")
 
 
-# ---------------------------------------------------------------- cyber avatar & gyroscope
+# ---------------------------------------------------------------- cyber core & bus hub
 
 
-def cyber_avatar(x, y, size, accent=OLIVE_ACCENT, glow=OLIVE_GLOW, bg=NAVY_DEEP):
-    """Bespoke animated Mecha/Cyber Visor Avatar."""
-    k = size / 100.0
+def cyber_core_hub(cx, cy, color=OLIVE_ACCENT, glow=OLIVE_GLOW, bg=NAVY_DEEP):
+    """Central Aerospace Flight-Deck Cyber Core & Bus Hub."""
     return f"""
-    <g class="cyber_bob" transform="translate({x}, {y}) scale({k:.3f})">
-      <!-- Outer Hex/Circle Shield -->
-      <circle cx="50" cy="50" r="46" fill="{bg}" stroke="{accent}" stroke-width="2.5" opacity="0.9"/>
-      <circle cx="50" cy="50" r="41" fill="none" stroke="{accent}" stroke-width="1" stroke-dasharray="4 6" opacity="0.4"/>
+    <g class="core_hub" transform="translate({cx}, {cy})">
+      <!-- Outgoing Circuit Bus Lines with Flowing Data Packets -->
+      <path d="M -220 0 L -80 0 M 80 0 L 220 0" stroke="{color}" stroke-width="1.8" stroke-dasharray="8 8" class="bus_line" opacity="0.7"/>
+      <path d="M 0 -110 L 0 -70 M 0 70 L 0 110" stroke="{color}" stroke-width="1.8" stroke-dasharray="8 8" class="bus_line" opacity="0.7"/>
+      <path d="M -140 -70 L -60 -30 M 60 30 L 140 70" stroke="{color}" stroke-width="1.4" stroke-dasharray="6 6" class="bus_line" opacity="0.45"/>
+      <path d="M 140 -70 L 60 -30 M -60 30 L -140 70" stroke="{color}" stroke-width="1.4" stroke-dasharray="6 6" class="bus_line" opacity="0.45"/>
       
-      <!-- Head Base Chassis -->
-      <path d="M26 34 L32 20 L68 20 L74 34 L72 68 L50 82 L28 68 Z" fill="#0E1726" stroke="{accent}" stroke-width="2"/>
+      <!-- Coordinate Crosshairs & Bearing Marks -->
+      <line x1="-180" y1="0" x2="180" y2="0" stroke="{color}" stroke-width="0.8" opacity="0.3"/>
+      <line x1="0" y1="-100" x2="0" y2="100" stroke="{color}" stroke-width="0.8" opacity="0.3"/>
+      <circle cx="0" cy="0" r="130" fill="none" stroke="{color}" stroke-width="0.8" stroke-dasharray="4 8" opacity="0.25"/>
+      <circle cx="0" cy="0" r="95" fill="none" stroke="{color}" stroke-width="1.2" stroke-dasharray="16 8" opacity="0.4" class="ring_spin"/>
       
-      <!-- Ear Audio Sensors / Nodes -->
-      <rect x="20" y="42" width="7" height="18" rx="3" fill="{accent}"/>
-      <rect x="73" y="42" width="7" height="18" rx="3" fill="{accent}"/>
+      <!-- Hexagonal Core Chamber -->
+      <polygon points="0,-60 52,-30 52,30 0,60 -52,30 -52,-30" fill="{bg}" stroke="{color}" stroke-width="2.2"/>
+      <polygon points="0,-50 43,-25 43,25 0,50 -43,25 -43,-25" fill="none" stroke="{glow}" stroke-width="1" opacity="0.5"/>
       
-      <!-- Top Antenna Beacon with Pulse -->
-      <line x1="50" y1="20" x2="50" y2="10" stroke="{accent}" stroke-width="2"/>
-      <circle cx="50" cy="8" r="3.5" fill="{glow}" class="beacon_pulse"/>
+      <!-- Core Optic Eye & Scanning Iris -->
+      <circle cx="0" cy="0" r="26" fill="#03070E" stroke="{color}" stroke-width="2"/>
+      <circle cx="0" cy="0" r="14" fill="{glow}" opacity="0.85" class="packet_pulse"/>
+      <circle cx="0" cy="0" r="5" fill="#FFFFFF"/>
       
-      <!-- Cyber Visor Window -->
-      <path d="M30 40 L70 40 L68 56 L32 56 Z" fill="#060C16" stroke="{glow}" stroke-width="1.5"/>
-      
-      <!-- Glowing Animated Visor Laser Scan Bar -->
-      <g clip-path="url(#visor_clip)">
-        <rect x="30" y="43" width="14" height="10" rx="3" fill="{glow}" class="visor_scan"/>
-      </g>
-      
-      <!-- Mouth Grill / Tactical Ports -->
-      <line x1="40" y1="68" x2="60" y2="68" stroke="{accent}" stroke-width="1.8" opacity="0.7"/>
-      <line x1="44" y1="73" x2="56" y2="73" stroke="{accent}" stroke-width="1.8" opacity="0.7"/>
-    </g>
-    """
-
-
-def gyroscope_mesh(cx=620, cy=200, color=OLIVE_ACCENT, glow=OLIVE_GLOW, opacity=0.45):
-    """3D Orbital Rings & Elliptical Gyroscope Background."""
-    return f"""
-    <g class="gyro_group" opacity="{opacity}">
-      <!-- Outer Orbit Ring -->
-      <ellipse cx="{cx}" cy="{cy}" rx="320" ry="120" fill="none" stroke="{color}" stroke-width="1.8" stroke-dasharray="12 8" class="ring_orbit_1"/>
-      
-      <!-- Angled Orbit Ring 2 -->
-      <g transform="rotate(35 {cx} {cy})">
-        <ellipse cx="{cx}" cy="{cy}" rx="280" ry="90" fill="none" stroke="{glow}" stroke-width="1.4" class="ring_orbit_2"/>
-        <circle cx="{cx + 280}" cy="{cy}" r="4.5" fill="{glow}"/>
-      </g>
-      
-      <!-- Angled Orbit Ring 3 -->
-      <g transform="rotate(-40 {cx} {cy})">
-        <ellipse cx="{cx}" cy="{cy}" rx="240" ry="75" fill="none" stroke="{color}" stroke-width="1.5" stroke-dasharray="8 6" class="ring_orbit_3"/>
-        <circle cx="{cx - 240}" cy="{cy}" r="4" fill="{color}"/>
-      </g>
-      
-      <!-- Core Telemetry Concentrics -->
-      <circle cx="{cx}" cy="{cy}" r="80" fill="none" stroke="{color}" stroke-width="1" stroke-dasharray="4 6"/>
-      <circle cx="{cx}" cy="{cy}" r="40" fill="none" stroke="{glow}" stroke-width="1.2"/>
-      <circle cx="{cx}" cy="{cy}" r="5" fill="{glow}"/>
+      <!-- Dynamic Data Packet Nodes -->
+      <circle cx="-160" cy="0" r="3" fill="{glow}" class="packet_pulse"/>
+      <circle cx="160" cy="0" r="3" fill="{glow}" class="packet_pulse"/>
+      <circle cx="0" cy="-85" r="3" fill="{glow}" class="packet_pulse"/>
+      <circle cx="0" cy="85" r="3" fill="{glow}" class="packet_pulse"/>
     </g>
     """
 
@@ -349,147 +347,107 @@ def logo(x, y, size, name, t, fallback=None):
     )
 
 
-# ---------------------------------------------------------------- hero bento
+# ---------------------------------------------------------------- systems flight deck bento
 
 
 def bento(mode, data):
     t = THEMES[mode]
     current, longest = streaks(data["days"])
     css = (
-        ".cyber_bob{animation:cyber_float 4s ease-in-out infinite;transform-origin:center}"
-        "@keyframes cyber_float{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}"
-        ".visor_scan{animation:scan 2.4s ease-in-out infinite alternate}"
-        "@keyframes scan{from{transform:translateX(0)}to{transform:translateX(26px)}}"
-        ".beacon_pulse{animation:beacon 1.4s ease-in-out infinite alternate}"
-        "@keyframes beacon{from{opacity:0.3;transform:scale(0.8)}to{opacity:1;transform:scale(1.3)}}"
-        ".ring_orbit_1{animation:gyro_spin_1 24s linear infinite;transform-origin:620px 200px}"
-        "@keyframes gyro_spin_1{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}"
-        ".ring_orbit_2{animation:gyro_spin_2 18s linear infinite reverse;transform-origin:620px 200px}"
-        "@keyframes gyro_spin_2{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}"
-        ".ring_orbit_3{animation:gyro_spin_3 22s linear infinite;transform-origin:620px 200px}"
-        "@keyframes gyro_spin_3{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}"
+        ".bus_line{animation:bus_flow 2s linear infinite}"
+        "@keyframes bus_flow{to{stroke-dashoffset:-32}}"
+        ".packet_pulse{animation:pulse_glow 1.8s ease-in-out infinite alternate}"
+        "@keyframes pulse_glow{from{opacity:0.3;transform:scale(0.85)}to{opacity:1;transform:scale(1.15)}}"
+        ".beacon_live{animation:beacon 1.2s ease-in-out infinite alternate}"
+        "@keyframes beacon{from{opacity:0.35}to{opacity:1}}"
+        ".ring_spin{animation:r_spin 30s linear infinite;transform-origin:center}"
+        "@keyframes r_spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}"
         ".rot{opacity:0;animation:rot 12s infinite}"
-        "@keyframes rot{0%{opacity:0;transform:translateY(14px)}3%,22%{opacity:1;transform:none}25%,100%{opacity:0;transform:translateY(-14px)}}"
-        ".pop{animation:pop .6s ease-out forwards;transform-box:fill-box;transform-origin:left center}"
-        "@keyframes pop{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}"
+        "@keyframes rot{0%{opacity:0;transform:translateY(12px)}3%,22%{opacity:1;transform:none}25%,100%{opacity:0;transform:translateY(-12px)}}"
         ".grow{animation:grow 1.2s cubic-bezier(.2,.8,.2,1) .3s forwards;transform-box:fill-box;transform-origin:left}"
         "@keyframes grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}"
-        ".shine{animation:shine 3.5s ease-in-out infinite}"
-        "@keyframes shine{0%,60%{transform:translateX(-300px)}100%{transform:translateX(420px)}}"
         ".marq{animation:marq 26s linear infinite}@keyframes marq{to{transform:translateX(-50%)}}"
     )
     b = []
 
-    # Card 1: Hero Identity (Squircle Card + 3D Orbital Gyroscope + Cyber Visor Avatar)
-    b.append(cell(0, 0, 820, 400, t, t["hero_bg"]))
-    b.append(
-        '<clipPath id="hero"><rect width="820" height="400" rx="16"/></clipPath>'
-        '<clipPath id="visor_clip"><rect x="30" y="40" width="40" height="16"/></clipPath>'
-    )
-    b.append(f'<g clip-path="url(#hero)">{gyroscope_mesh(620, 200, color=t["accent"], glow=t["accent_bright"])}</g>')
-    b.append(cyber_avatar(36, 32, 132, accent=t["accent"], glow=t["accent_bright"], bg=t["cell"]))
-    b.append(text(40, 248, "HEY, I'M SHLOK", 104, "Disp", t["fg"]))
-    b.append(text(42, 298, "Systems Architect & Distributed Runtimes Engineer.", 22, "Mono", t["dim"]))
-    b.append(text(42, 352, "I build", 22, "MonoB", t["accent_bright"]))
+    # Section 1: Top Avionics Telemetry Ribbon (1280x68)
+    b.append(chamfer_cell(0, 0, W, 68, t, c=12, brackets=True))
+    b.append(f'<circle cx="28" cy="34" r="4.5" fill="{t["accent_bright"]}" class="beacon_live"/>')
+    b.append(text(42, 40, "AVIONICS TELEMETRY // SSHLOKTIWARII", 13, "MonoB", t["accent_bright"], spacing=".12em"))
+    b.append(text(420, 40, f"CONTRIBUTIONS: {data['total']:,}", 13, "Mono", t["fg"]))
+    b.append(text(640, 40, f"STREAK NOW: {current}D", 13, "Mono", t["fg"]))
+    b.append(text(810, 40, f"BEST STREAK: {longest}D", 13, "Mono", t["fg"]))
+    b.append(text(980, 40, f"PUBLIC REPOS: {data['repos']}", 13, "Mono", t["fg"]))
+    b.append(text(1160, 40, "SYS: NOMINAL", 13, "MonoB", t["accent_bright"]))
+
+    # Section 2: Command Hero Deck (1280x360)
+    y = 84
+    b.append(chamfer_cell(0, y, W, 360, t, t["hero_bg"], c=16, brackets=True))
+    b.append(cyber_core_hub(1020, y + 180, color=t["accent"], glow=t["accent_bright"], bg=t["cell"]))
+
+    b.append(label(46, y + 42, "COMMAND DECK // DISTRIBUTED RUNTIMES", t))
+    b.append(text(44, y + 140, "HEY, I'M SHLOK", 96, "Disp", t["fg"]))
+    b.append(text(46, y + 192, "Systems Architect & Distributed Runtimes Engineer.", 21, "Mono", t["dim"]))
+    b.append(text(46, y + 248, "DIRECTIVE: I build", 19, "MonoB", t["accent_bright"]))
     for i, s in enumerate(STATUS_LINES):
-        b.append(f'<g class="rot" style="animation-delay:{i * 3}s">{text(152, 352, s, 22, "MonoB", t["fg"])}</g>')
+        b.append(f'<g class="rot" style="animation-delay:{i * 3}s">{text(244, y + 248, s, 19, "MonoB", t["fg"])}</g>')
+    b.append(text(46, y + 314, "COORDINATES: MUMBAI // LAT 19.0760° N · LON 72.8777° E · 0 DOWNTIME", 13, "Mono", t["dim"]))
 
-    # Card 2: Principles / Philosophy Card
-    b.append(cell(840, 0, 440, 190, t))
-    b.append(label(870, 42, "WORDS I CODE BY", t))
-    b.append(text(868, 96, "SIMPLICITY IS PREREQUISITE", 28, "Disp", t["fg"]))
-    b.append(text(868, 134, "FOR RELIABILITY.", 28, "Disp", t["accent_bright"]))
-    b.append(text(870, 168, "Edsger W. Dijkstra", 15, "Mono", t["dim"]))
-
-    # Card 3: Core Discipline
-    b.append(cell(840, 210, 440, 190, t))
-    b.append('<clipPath id="hk"><rect x="840" y="210" width="440" height="190" rx="16"/></clipPath>')
-    b.append(
-        f'<g clip-path="url(#hk)"><rect class="shine" x="840" y="210" width="100" height="190" fill="{t["accent_bright"]}" opacity=".15" transform="skewX(-20)"/></g>'
-    )
-    b.append(label(870, 252, "CORE DISCIPLINE", t))
-    b.append(text(866, 328, "LOCAL AI", 72, "Disp", t["accent_bright"]))
-    b.append(text(868, 364, "SYSTEM RUNTIMES", 18, "MonoB", t["dim"]))
-
-    # Row 2: Live Numbers | Languages in repos | Focus area
-    y = 420
-    b.append(cell(0, y, 410, 300, t))
-    b.append(label(30, y + 42, "On GitHub", t))
-    stats = [
-        (data["total"], "contributions this year"),
-        (current, "day streak now"),
-        (longest, "day best streak"),
-        (data["repos"], "public repositories"),
-    ]
-    for i, (n, what) in enumerate(stats):
-        yy = y + 100 + i * 56
-        b.append(
-            f'<g class="pop" style="animation-delay:{.15 * i:.2f}s">'
-            + text(30, yy, f"{n:,}", 44, "Disp", t["accent_bright"] if i == 0 else t["fg"])
-            + text(150, yy - 6, what, 18, "Mono", t["dim"])
-            + "</g>"
-        )
-
-    # Real Language Breakdown from user repositories (Animated growing multi-color bar + logos)
-    b.append(cell(430, y, 430, 300, t))
-    b.append(label(460, y + 42, "Languages in my repos", t))
+    # Section 3: Midsection Avionics Deck (1280x320)
+    y = 460
+    # Left Console: Language Spectrum Matrix (w=626)
+    b.append(chamfer_cell(0, y, 626, 320, t, c=14, brackets=True))
+    b.append(label(34, y + 40, "SYS-LANG // REPOSITORY SPECTRUM", t))
     langs = data["languages"][:6]
     total = sum(x[1] for x in langs) or 1
-    bx, bar = 460, ""
+    bx, bar = 34, ""
     for name, size, color in langs:
-        wdt = 370 * size / total
-        bar += f'<rect x="{bx:.1f}" y="{y + 66}" width="{max(wdt - 3, 1):.1f}" height="16" rx="3" fill="{color}"/>'
+        wdt = 558 * size / total
+        bar += f'<rect x="{bx:.1f}" y="{y + 64}" width="{max(wdt - 2, 1):.1f}" height="14" rx="2" fill="{color}"/>'
         bx += wdt
     b.append(f'<g class="grow">{bar}</g>')
     for i, (name, size, color) in enumerate(langs):
-        lx, ly = 460 + (i % 2) * 190, y + 106 + (i // 2) * 60
+        lx, ly = 34 + (i % 2) * 280, y + 104 + (i // 2) * 64
         b.append(
-            f'<g class="pop" style="animation-delay:{.6 + .1 * i:.2f}s">'
-            + logo(lx + 4, ly + 4, 34, name, t, color)
-            + text(lx + 54, ly + 19, name, 18, "Mono", t["fg"])
-            + text(lx + 54, ly + 40, f"{100 * size / total:.0f}%", 14, "Mono", t["dim"])
-            + "</g>"
+            logo(lx + 4, ly + 4, 30, name, t, color)
+            + text(lx + 48, ly + 18, name, 17, "Mono", t["fg"])
+            + text(lx + 48, ly + 38, f"{100 * size / total:.0f}%  ·  {size // 1024:,} KB", 13, "Mono", t["dim"])
         )
 
-    # Architectural Spec Card
-    b.append(cell(880, y, 400, 300, t))
-    b.append(label(910, y + 42, "SYSTEM ARCHITECTURE", t))
-    b.append(text(908, y + 110, "AUTONOMOUS", 48, "Disp", t["fg"]))
-    b.append(text(908, y + 154, "AGENT RUNTIMES", 48, "Disp", t["accent_bright"]))
-    b.append(text(910, y + 204, "Sub-16ms telemetry, SQLite WAL", 16, "Mono", t["dim"]))
-    b.append(text(910, y + 232, "storage & high-resilience kernels", 16, "Mono", t["dim"]))
+    # Right Console: Architecture & Discipline Bay (w=626)
+    b.append(chamfer_cell(654, y, 626, 320, t, c=14, brackets=True))
+    b.append(label(688, y + 40, "SYS-SPEC // CORE WEAPONS & DISCIPLINE", t))
+    b.append(text(686, y + 84, "SIMPLICITY IS PREREQUISITE FOR RELIABILITY.", 23, "Disp", t["fg"]))
+    b.append(text(688, y + 112, "Edsger W. Dijkstra  ·  Core Discipline: LOCAL AI RUNTIMES", 13, "Mono", t["accent_bright"]))
 
-    # Row 3: Tech Stack Chips (Clean modern chips with official brand SVG icons)
-    y = 740
-    b.append(cell(0, y, W, 170, t))
-    b.append(label(30, y + 42, "What I build with", t))
-    x, yy = 30, y + 70
+    # Tech Stack Micro-Chips
+    b.append(text(688, y + 158, "DEPLOYED RUNTIMES & TOOLING", 12, "Mono", t["dim"]))
+    x, yy = 688, y + 184
     for i, s in enumerate(STACK):
-        wdt = 58 + len(s) * 11.2
-        if x + wdt > W - 30:
-            x, yy = 30, yy + 52
+        wdt = 52 + len(s) * 10.5
+        if x + wdt > 654 + 626 - 30:
+            x, yy = 688, yy + 44
         b.append(
-            f'<g class="pop" style="animation-delay:{.08 * i:.2f}s">'
-            f'<rect x="{x}" y="{yy}" width="{wdt}" height="40" rx="10" fill="none" stroke="{t["edge"]}" stroke-width="1.5"/>'
-            + logo(x + 14, yy + 10, 20, s, t)
-            + text(x + 42, yy + 26, s, 17, "Mono", t["fg"])
-            + "</g>"
+            chamfer_path(x, yy, wdt, 34, c=6)
+            and f'<path d="{chamfer_path(x, yy, wdt, 34, c=6)}" fill="none" stroke="{t["edge"]}" stroke-width="1.2"/>'
+            + logo(x + 10, yy + 7, 20, s, t)
+            + text(x + 36, yy + 22, s, 15, "Mono", t["fg"])
         )
-        x += wdt + 12
+        x += wdt + 10
 
-    # Row 4: Interests Marquee + Portfolio / Contact Banner
-    y = 930
-    b.append(cell(0, y, 820, 150, t))
-    b.append(label(30, y + 42, "Off the clock & deep research", t))
-    b.append(f'<clipPath id="mq"><rect x="1" y="{y + 60}" width="818" height="60"/></clipPath>')
+    # Section 4: Runway Marquee & Terminal Link (1280x92)
+    y = 796
+    b.append(chamfer_cell(0, y, 840, 92, t, c=12, brackets=True))
+    b.append(label(30, y + 32, "RESEARCH FLIGHT PATH", t))
+    b.append(f'<clipPath id="mq"><rect x="2" y="{y + 44}" width="836" height="40"/></clipPath>')
     line = "  ·  ".join(INTERESTS) + "  ·  "
-    b.append(f'<g clip-path="url(#mq)"><g class="marq">' + text(30, y + 102, line + line, 24, "Mono", t["fg"]) + "</g></g>")
+    b.append(f'<g clip-path="url(#mq)"><g class="marq">' + text(30, y + 70, line + line, 20, "Mono", t["fg"]) + "</g></g>")
 
-    b.append(cell(840, y, 440, 150, t))
-    b.append(label(870, y + 42, "GitHub Profile", t))
-    b.append(text(868, y + 104, "github.com/sshloktiwarii ↗", 26, "WM", t["accent_bright"]))
+    b.append(chamfer_cell(860, y, 420, 92, t, c=12, brackets=True))
+    b.append(label(884, y + 32, "STATION 01 // TERMINAL LINK", t))
+    b.append(text(882, y + 70, "github.com/sshloktiwarii ↗", 23, "WM", t["accent_bright"]))
 
-    return svg(1096, "".join(b), css, title="Shlok Tiwari, Systems Architect")
+    return svg(904, "".join(b), css, title="Shlok Tiwari, Systems Architect")
 
 
 # ---------------------------------------------------------------- activity heatmap
@@ -510,22 +468,23 @@ def activity(mode, data):
         fill = levels[level] or t["empty"]
         delay = (col + row) * 0.02
         cells.append(
-            f'<rect class="d" style="animation-delay:{delay:.2f}s" x="{x}" y="{y}" width="{size}" height="{size}" rx="4" fill="{fill}">'
+            f'<rect class="d" style="animation-delay:{delay:.2f}s" x="{x}" y="{y}" width="{size}" height="{size}" rx="3" fill="{fill}">'
             f"<title>{count} on {date}</title></rect>"
         )
     css = (
-        ".d{opacity:0;animation:in .4s ease-out forwards;transform-box:fill-box;transform-origin:center}"
+        ".d{animation:in .4s ease-out forwards;transform-box:fill-box;transform-origin:center}"
         "@keyframes in{from{opacity:0;transform:scale(.3)}to{opacity:1;transform:none}}"
+        ".beacon_live{animation:beacon 1.2s ease-in-out infinite alternate}@keyframes beacon{from{opacity:0.35}to{opacity:1}}"
     )
     width = x0 * 2 + 53 * (size + gap)
     legend = "".join(
-        f'<rect x="{width - 30 - (5 - i) * 24}" y="34" width="18" height="18" rx="4" fill="{levels[i] or t["empty"]}"/>'
+        f'<rect x="{width - 30 - (5 - i) * 24}" y="34" width="18" height="18" rx="3" fill="{levels[i] or t["empty"]}"/>'
         for i in range(5)
     )
-    # Zero pill shapes - clean header
     body = (
-        cell(0, 0, W, 280, t)
-        + label(30, 48, f"{data['total']:,} contributions in the last year", t)
+        chamfer_cell(0, 0, W, 280, t, c=14, brackets=True)
+        + f'<circle cx="28" cy="42" r="4.5" fill="{t["accent_bright"]}" class="beacon_live"/>'
+        + text(42, 48, f"TELEMETRY LOG // {data['total']:,} CONTRIBUTIONS THIS YEAR", 13, "MonoB", t["accent_bright"], spacing=".12em")
         + text(width - 160, 48, "less", 13, "Mono", t["dim"], "end")
         + legend
         + text(width - 22, 48, "more", 13, "Mono", t["dim"])
@@ -533,7 +492,7 @@ def activity(mode, data):
         + text(
             30,
             268,
-            "Sample data until the first refresh" if data["updated"] == "sample" else f"Updated {data['updated']}",
+            "Sample data until the first refresh" if data["updated"] == "sample" else f"STATUS: LIVE TELEMETRY · UPDATED {data['updated']}",
             12,
             "Mono",
             t["dim"],
@@ -542,49 +501,49 @@ def activity(mode, data):
     return svg(296, body, css, title=f"{data['total']} contributions in the last year")
 
 
-# ---------------------------------------------------------------- project icons & cards (6 BEST PROJECTS)
+# ---------------------------------------------------------------- project icons & aerospace avionics cards
 
 ICONS = {
     "semcache": (
-        '<rect x="12" y="14" width="40" height="36" rx="8" stroke-width="3"/>'
-        '<path d="M20 26h24M20 38h14" stroke-width="3"/>'
+        '<rect x="12" y="14" width="40" height="36" rx="4" stroke-width="2.5"/>'
+        '<path d="M20 26h24M20 38h14" stroke-width="2.5"/>'
         '<g class="bolt"><path d="M42 28l-8 10h6l-2 10 10-12h-6z" fill="currentColor"/></g>',
-        ".bolt{animation:pulse 1.8s ease-in-out infinite;transform-origin:38px 36px}@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.25)}}",
+        ".bolt{animation:pulse 1.8s ease-in-out infinite;transform-origin:38px 36px}@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.2)}}",
     ),
     "agentvault": (
-        '<rect x="14" y="16" width="36" height="36" rx="6" stroke-width="3"/>'
-        '<circle cx="32" cy="34" r="8" stroke-width="3"/>'
-        '<g class="dial"><line x1="32" y1="34" x2="32" y2="28" stroke-width="3"/></g>',
+        '<rect x="14" y="16" width="36" height="36" rx="4" stroke-width="2.5"/>'
+        '<circle cx="32" cy="34" r="8" stroke-width="2.5"/>'
+        '<g class="dial"><line x1="32" y1="34" x2="32" y2="28" stroke-width="2.5"/></g>',
         ".dial{animation:spin 4s linear infinite;transform-origin:32px 34px}@keyframes spin{to{transform:rotate(360deg)}}",
     ),
     "sentinel": (
-        '<path d="M32 8L14 16v16c0 14 18 24 18 24s18-10 18-24V16L32 8z" stroke-width="3"/>'
-        '<g class="sweep"><circle cx="32" cy="32" r="10" stroke-width="2"/><line x1="32" y1="32" x2="40" y2="24" stroke-width="2.5"/></g>',
+        '<path d="M32 8L14 16v16c0 14 18 24 18 24s18-10 18-24V16L32 8z" stroke-width="2.5"/>'
+        '<g class="sweep"><circle cx="32" cy="32" r="10" stroke-width="2"/><line x1="32" y1="32" x2="40" y2="24" stroke-width="2"/></g>',
         ".sweep{animation:spin 2.5s linear infinite;transform-origin:32px 32px}@keyframes spin{to{transform:rotate(360deg)}}",
     ),
     "aegis": (
-        '<path d="M12 18h40v30a6 6 0 0 1-6 6H18a6 6 0 0 1-6-6V18z" stroke-width="3"/>'
-        '<path d="M22 18V12a10 10 0 0 1 20 0v6" stroke-width="3"/>'
-        '<g class="lock"><circle cx="32" cy="32" r="4" fill="currentColor"/><line x1="32" y1="36" x2="32" y2="44" stroke-width="3"/></g>',
+        '<path d="M14 18h36v28a4 4 0 0 1-4 4H18a4 4 0 0 1-4-4V18z" stroke-width="2.5"/>'
+        '<path d="M22 18V12a10 10 0 0 1 20 0v6" stroke-width="2.5"/>'
+        '<g class="lock"><circle cx="32" cy="32" r="3.5" fill="currentColor"/><line x1="32" y1="35" x2="32" y2="43" stroke-width="2.5"/></g>',
         ".lock{animation:nod 2s ease-in-out infinite}@keyframes nod{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}",
     ),
     "strata": (
-        '<path d="M10 20l22-10 22 10-22 10z" stroke-width="3"/>'
-        '<path class="l2" d="M10 32l22 10 22-10" stroke-width="3"/>'
-        '<path class="l3" d="M10 44l22 10 22-10" stroke-width="3"/>',
+        '<path d="M12 20l20-9 20 9-20 9z" stroke-width="2.5"/>'
+        '<path class="l2" d="M12 32l20 9 20-9" stroke-width="2.5"/>'
+        '<path class="l3" d="M12 44l20 9 20-9" stroke-width="2.5"/>',
         ".l2{animation:float 2.5s ease-in-out infinite alternate}@keyframes float{to{transform:translateY(-3px)}}"
         ".l3{animation:float 2.5s ease-in-out .5s infinite alternate}",
     ),
     "cortex": (
-        '<circle cx="32" cy="32" r="16" stroke-width="3"/>'
-        '<circle cx="32" cy="32" r="6" fill="currentColor"/>'
-        '<g class="orbit"><circle cx="12" cy="32" r="4" fill="currentColor"/><circle cx="52" cy="32" r="4" fill="currentColor"/></g>',
+        '<circle cx="32" cy="32" r="15" stroke-width="2.5"/>'
+        '<circle cx="32" cy="32" r="5" fill="currentColor"/>'
+        '<g class="orbit"><circle cx="14" cy="32" r="3.5" fill="currentColor"/><circle cx="50" cy="32" r="3.5" fill="currentColor"/></g>',
         ".orbit{animation:orbit 3s ease-in-out infinite alternate;transform-origin:32px 32px}@keyframes orbit{to{transform:rotate(180deg)}}",
     ),
 }
 
 
-def wrap_line(s, limit=52):
+def wrap_line(s, limit=46):
     words = s.split()
     lines, cur = [], []
     for w in words:
@@ -604,39 +563,51 @@ def card(mode, p, data):
     stars = data["stars"].get(p["repo"]) if p["repo"] else None
     where = "repo ↗" if p["repo"] else "live ↗"
     meta = f"★ {stars}  ·  {where}" if stars else where
+    idx = next((i + 1 for i, item in enumerate(PROJECTS) if item["slug"] == p["slug"]), 1)
     
-    desc_lines = wrap_line(p["line"], limit=54)
-    desc_svg = ""
-    if len(desc_lines) == 1:
-        desc_svg = text(30, 162, desc_lines[0], 15, "Mono", t["fg"])
-    else:
-        desc_svg = (
-            text(30, 154, desc_lines[0], 14.5, "Mono", t["fg"])
-            + text(30, 176, desc_lines[1], 14.5, "Mono", t["fg"])
-        )
+    # 100% guaranteed 2-line wrapping with max 46 characters
+    desc_lines = wrap_line(p["line"], limit=46)
+    desc_svg = (
+        text(28, 154, desc_lines[0], 14, "Mono", t["fg"])
+        + (text(28, 178, desc_lines[1], 14, "Mono", t["fg"]) if len(desc_lines) > 1 else "")
+    )
+
+    card_css = (
+        motion
+        + ".beacon_live{animation:beacon 1.2s ease-in-out infinite alternate}@keyframes beacon{from{opacity:0.35}to{opacity:1}}"
+    )
 
     body = (
-        cell(0, 0, 620, 240, t)
-        + f'<rect x="28" y="24" width="96" height="96" rx="16" fill="{t["accent_bright"]}"/>'
-        + f'<g transform="translate(36 32) scale(1.15)" fill="none" stroke="{t["bg"]}" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" color="{t["bg"]}">{draw}</g>'
-        + text(144, 56, p["tag"].upper(), 13, "Mono", t["accent_bright"], spacing=".14em")
-        + text(142, 108, p["name"].upper(), 52, "Disp", t["fg"])
+        chamfer_cell(0, 0, 620, 240, t, c=14, brackets=True)
+        # Module Header Bar
+        + text(28, 42, f"[MOD-0{idx} // {p['tag'].upper()}]", 13, "MonoB", t["accent_bright"], spacing=".14em")
+        + f'<circle cx="430" cy="36" r="3.5" fill="{t["accent_bright"]}" class="beacon_live"/>'
+        + text(442, 42, "ONLINE", 12, "MonoB", t["accent_bright"])
+        + text(592, 42, meta, 13, "Mono", t["dim"], "end")
+        # Embedded Mechanical Telemetry Icon
+        + f'<path d="{chamfer_path(28, 58, 64, 64, c=8)}" fill="{t["accent_bright"]}"/>'
+        + f'<g transform="translate(34 64) scale(0.85)" fill="none" stroke="{t["bg"]}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" color="{t["bg"]}">{draw}</g>'
+        # Display Title
+        + text(108, 114, p["name"].upper(), 48, "Disp", t["fg"])
+        # 2-Line Wrapped Spec
         + desc_svg
-        + text(30, 212, p["stack"], 13, "Mono", t["dim"])
-        + text(590, 212, meta, 13, "Mono", t["dim"], "end")
+        # Tech Stack Tag
+        + text(28, 214, p["stack"], 13, "Mono", t["dim"])
     )
-    return svg(240, body, motion, w=620, title=f'{p["name"]}: {p["line"]}')
+    return svg(240, body, card_css, w=620, title=f'{p["name"]}: {p["line"]}')
 
 
 def footer(mode):
     t = THEMES[mode]
+    css = ".beacon_live{animation:beacon 1.2s ease-in-out infinite alternate}@keyframes beacon{from{opacity:0.35}to{opacity:1}}"
     body = (
-        cell(0, 0, W, 120, t, t["cell"])
-        + cyber_avatar(40, 10, 100, accent=t["accent"], glow=t["accent_bright"], bg=t["bg"])
-        + text(W / 2, 74, "SHLOK TIWARI", 34, "WM", t["accent_bright"], "middle", spacing=".12em")
-        + text(W - 40, 72, "thanks for stopping by", 16, "Mono", t["dim"], "end")
+        chamfer_cell(0, 0, W, 100, t, t["cell"], c=12, brackets=True)
+        + f'<circle cx="34" cy="50" r="4.5" fill="{t["accent_bright"]}" class="beacon_live"/>'
+        + text(50, 56, "COMMAND STATION // MUMBAI", 14, "MonoB", t["accent_bright"], spacing=".12em")
+        + text(W / 2, 58, "SHLOK TIWARI", 30, "WM", t["fg"], "middle", spacing=".14em")
+        + text(W - 40, 56, "FLIGHT STATUS: NOMINAL ↗", 14, "Mono", t["dim"], "end")
     )
-    return svg(120, body, "", title="Shlok Tiwari")
+    return svg(100, body, css, title="Shlok Tiwari")
 
 
 def main():
