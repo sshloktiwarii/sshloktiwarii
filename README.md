@@ -2,8 +2,8 @@
 
 <a href="https://github.com/sshloktiwarii">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/bento-dark.svg?v=5">
-    <img alt="Hey, I'm Shlok, Systems Architect & Distributed Runtimes Engineer." src="assets/bento-light.svg?v=5" width="100%">
+    <source media="(prefers-color-scheme: dark)" srcset="assets/bento-dark.svg?v=6">
+    <img alt="Hey, I'm Shlok, Systems Architect & Distributed Runtimes Engineer." src="assets/bento-light.svg?v=6" width="100%">
   </picture>
 </a>
 

@@ -357,11 +357,11 @@ def bento(mode, data):
         ".bus_line{animation:bus_flow 2s linear infinite}"
         "@keyframes bus_flow{to{stroke-dashoffset:-32}}"
         ".packet_pulse{animation:pulse_glow 1.8s ease-in-out infinite alternate}"
-        "@keyframes pulse_glow{from{opacity:0.3;transform:scale(0.85)}to{opacity:1;transform:scale(1.15)}}"
+        "@keyframes pulse_glow{from{opacity:0.35}to{opacity:1}}"
         ".beacon_live{animation:beacon 1.2s ease-in-out infinite alternate}"
         "@keyframes beacon{from{opacity:0.35}to{opacity:1}}"
-        ".ring_spin{animation:r_spin 30s linear infinite;transform-origin:center}"
-        "@keyframes r_spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}"
+        ".ring_spin{animation:r_spin 14s linear infinite}"
+        "@keyframes r_spin{to{stroke-dashoffset:-96}}"
         ".rot{opacity:0;animation:rot 12s infinite}"
         "@keyframes rot{0%{opacity:0;transform:translateY(12px)}3%,22%{opacity:1;transform:none}25%,100%{opacity:0;transform:translateY(-12px)}}"
         ".grow{animation:grow 1.2s cubic-bezier(.2,.8,.2,1) .3s forwards;transform-box:fill-box;transform-origin:left}"
@@ -381,7 +381,12 @@ def bento(mode, data):
     # Section 2: Command Hero Deck (1280x360)
     y = 84
     b.append(chamfer_cell(0, y, W, 360, t, t["hero_bg"], c=16, brackets=True))
-    b.append(cyber_core_hub(1020, y + 180, color=t["accent"], glow=t["accent_bright"], bg=t["cell"]))
+    b.append(f'<clipPath id="hero_clip"><path d="{chamfer_path(0, y, W, 360, c=16)}"/></clipPath>')
+    b.append(
+        f'<g clip-path="url(#hero_clip)">'
+        f'{cyber_core_hub(1020, y + 180, color=t["accent"], glow=t["accent_bright"], bg=t["cell"])}'
+        f'</g>'
+    )
 
     b.append(label(46, y + 42, "SOFTWARE ARCHITECTURE // DISTRIBUTED SYSTEMS", t))
     b.append(text(44, y + 140, "HEY, I'M SHLOK", 96, "Disp", t["fg"]))
