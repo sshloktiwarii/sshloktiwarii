@@ -14,6 +14,8 @@ import json
 import math
 import os
 import re
+import subprocess
+import urllib.request
 
 from fontTools.pens.svgPathPen import SVGPathPen
 from fontTools.pens.transformPen import TransformPen
@@ -138,7 +140,68 @@ STATUS_LINES = [
 # ---------------------------------------------------------------- data
 
 
+def graphql(query, token):
+    req = urllib.request.Request(
+        "https://api.github.com/graphql",
+        data=json.dumps({"query": query}).encode(),
+        headers={"Authorization": f"bearer {token}", "User-Agent": USER},
+    )
+    with urllib.request.urlopen(req, timeout=30) as res:
+        body = json.load(res)
+    if "errors" in body:
+        raise RuntimeError(body["errors"])
+    return body["data"]
+
+
+def refresh(token):
+    q = """{ user(login: "%s") {
+      contributionsCollection { contributionCalendar { totalContributions
+        weeks { contributionDays { date contributionCount contributionLevel } } } }
+      repositories(first: 100, ownerAffiliations: OWNER, privacy: PUBLIC, isFork: false) { totalCount
+        nodes { name stargazerCount
+          languages(first: 8, orderBy: {field: SIZE, direction: DESC}) { edges { size node { name color } } } } } } }""" % USER
+    user = graphql(q, token)["user"]
+    level = {"NONE": 0, "FIRST_QUARTILE": 1, "SECOND_QUARTILE": 2, "THIRD_QUARTILE": 3, "FOURTH_QUARTILE": 4}
+    cal = user["contributionsCollection"]["contributionCalendar"]
+    days = [
+        [d["date"], d["contributionCount"], level[d["contributionLevel"]]]
+        for w in cal["weeks"]
+        for d in w["contributionDays"]
+    ]
+    langs, stars = {}, {}
+    for r in user["repositories"]["nodes"]:
+        stars[r["name"]] = r["stargazerCount"]
+        for e in r["languages"]["edges"]:
+            n = e["node"]["name"]
+            langs.setdefault(n, [0, e["node"]["color"] or "#888"])[0] += e["size"]
+    data = dict(
+        updated=dt.date.today().isoformat(),
+        total=cal["totalContributions"],
+        days=days,
+        repos=user["repositories"]["totalCount"],
+        stars=stars,
+        languages=sorted(([k, v[0], v[1]] for k, v in langs.items()), key=lambda x: -x[1]),
+    )
+    with open(DATA, "w") as f:
+        json.dump(data, f, indent=1)
+    return data
+
+
 def load():
+    token = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
+    if not token:
+        try:
+            token = subprocess.check_output(["gh", "auth", "token"]).decode().strip()
+        except Exception:
+            token = None
+    if token:
+        try:
+            print("fetching live telemetry from GitHub GraphQL API...")
+            return refresh(token)
+        except Exception as error:
+            if os.environ.get("CI"):
+                raise
+            print(f"refresh failed, drawing from saved data: {error}")
     with open(DATA) as f:
         return json.load(f)
 
