@@ -1,53 +1,31 @@
-<div align="center">
-  <a href="https://github.com/sshloktiwarii">
-    <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="assets/bento-dark.svg">
-      <img alt="Shlok Tiwari - Systems & AI Engineering Bento" src="assets/bento-light.svg" width="100%">
-    </picture>
-  </a>
-</div>
+<!-- Images are drawn by scripts/build.py and refreshed daily by .github/workflows/refresh.yml. -->
 
-<br>
-
-<div align="center">
+<a href="https://github.com/sshloktiwarii">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/activity-dark.svg">
-    <img alt="GitHub Contribution Telemetry Matrix" src="assets/activity-light.svg" width="100%">
+    <source media="(prefers-color-scheme: dark)" srcset="assets/bento-dark.svg">
+    <img alt="Hey, I'm Shlok, Systems Architect & Distributed Runtimes Engineer." src="assets/bento-light.svg" width="100%">
   </picture>
-</div>
+</a>
 
-<br>
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/activity-dark.svg">
+  <img alt="My GitHub contributions over the last year" src="assets/activity-light.svg" width="100%">
+</picture>
 
-## Systems & Flagship Projects
+## Things I've built
 
-<p align="center">
-  <a href="https://github.com/sshloktiwarii/semcache"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/project-semcache-dark.svg"><img alt="SemCache" src="assets/project-semcache-light.svg" width="49%"></picture></a>
-  <a href="https://github.com/sshloktiwarii/agentvault"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/project-agentvault-dark.svg"><img alt="AgentVault" src="assets/project-agentvault-light.svg" width="49%"></picture></a>
-</p>
-<p align="center">
-  <a href="https://github.com/sshloktiwarii/strata"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/project-strata-dark.svg"><img alt="Strata" src="assets/project-strata-light.svg" width="49%"></picture></a>
-  <a href="https://github.com/sshloktiwarii/cortex"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/project-cortex-dark.svg"><img alt="Cortex" src="assets/project-cortex-light.svg" width="49%"></picture></a>
-</p>
+<a href="https://github.com/sshloktiwarii/SemCache"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/project-semcache-dark.svg"><img alt="SemCache: Remembers answers from AI so you get instant responses without paying twice." src="assets/project-semcache-light.svg" width="49%"></picture></a>
+<a href="https://github.com/sshloktiwarii/AgentVault"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/project-agentvault-dark.svg"><img alt="AgentVault: A black-box flight recorder that tracks every move your AI agents make in real time." src="assets/project-agentvault-light.svg" width="49%"></picture></a>
+<a href="https://github.com/sshloktiwarii/strata"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/project-strata-dark.svg"><img alt="Strata: A control center that runs and organizes large fleets of autonomous AI workers." src="assets/project-strata-light.svg" width="49%"></picture></a>
+<a href="https://github.com/sshloktiwarii/Cortex"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/project-cortex-dark.svg"><img alt="Cortex: The central brain that coordinates multiple specialized agents to solve big problems." src="assets/project-cortex-light.svg" width="49%"></picture></a>
 
-<br>
+## Say hi
 
-## Transmit / Say Hello
+Building something in local AI, distributed systems, or low-latency agent runtimes? I'm always happy to talk architecture.
 
-```sh
-$ ssh sshloktiwarii@terminal.local -p 2200
-> STATUS: ONLINE [LOW-LATENCY RUNTIME]
-> SPECIALIZATION: SYSTEMS & AUTONOMOUS AI INFRASTRUCTURE
-```
+<p align="center"><b><a href="https://github.com/sshloktiwarii">GitHub</a></b> · <b><a href="mailto:337345008+sshloktiwarii@users.noreply.github.com">Email</a></b></p>
 
-- **Email:** [sshloktiwarii@gmail.com](mailto:sshloktiwarii@gmail.com)
-- **GitHub:** [@sshloktiwarii](https://github.com/sshloktiwarii)
-- **LinkedIn:** [linkedin.com/in/sshloktiwarii](https://linkedin.com/in/sshloktiwarii)
-
-<br>
-
-<div align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/footer-dark.svg">
-    <img alt="Engineering Invariants & Status Banner" src="assets/footer-light.svg" width="100%">
-  </picture>
-</div>
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/footer-dark.svg">
+  <img alt="Shlok Tiwari" src="assets/footer-light.svg" width="100%">
+</picture>

@@ -1,1366 +1,642 @@
-#!/usr/bin/env python3
-"""Build script for Shlok Tiwari's GitHub Profile SVG Asset Suite.
-
-Generates:
-1. assets/github.json - GitHub contribution calendar cache & loader.
-2. assets/bento-{dark,light}.svg - Hero bento cards with embedded liquid chrome mesh.
-3. assets/activity-{dark,light}.svg - 52-week contribution telemetry matrix.
-4. assets/project-{semcache,agentvault,strata,cortex}-{dark,light}.svg - Flagship project cards.
-5. assets/footer-{dark,light}.svg - Systems engineering footer banners.
+"""
+High-End Vector SVG Profile Generator for Shlok Tiwari (sshloktiwarii)
+Inspired by harsh4k/harsh4k:
+- 100% Vector outline typography via fontTools Face (Audiowide, BigShouldersDisplay, IBMPlexMono)
+- Live GitHub GraphQL integration (contributions, real languages, stars)
+- High-contrast Cyber-Telemetry Bento Grid:
+  * Hero banner with bobbing vector mascot + rotating status lines + animated wave mesh
+  * Quote card with animated gradient sweep
+  * Live stats with Pop animations
+  * Real Language Breakdown with grow animations & brand vector logos
+  * Tech stack chips with SVG brand icons
+  * Off the clock marquee animation
+  * 4 Animated Flagship Project Cards with unique kinetic SVG icons
 """
 
-import os
-import sys
+import datetime as dt
+import html
 import json
 import math
-import random
-import datetime
+import os
+import re
 import urllib.request
-import urllib.error
-from typing import Dict, Any, List, Optional, Tuple
+import subprocess
 
-# Ensure scripts directory is on sys.path
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-if SCRIPT_DIR not in sys.path:
-    sys.path.insert(0, SCRIPT_DIR)
+from fontTools.pens.svgPathPen import SVGPathPen
+from fontTools.pens.transformPen import TransformPen
+from fontTools.ttLib import TTFont
 
-from palette import get_palette, PALETTES
-from vector_font import Face, SYMBOLS
-from liquid_chrome import liquid_chrome_mesh
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+SRC = os.path.join(ROOT, "src")
+ASSETS = os.path.join(ROOT, "assets")
+DATA = os.path.join(ASSETS, "github.json")
+USER = "sshloktiwarii"
 
-REPO_ROOT = os.path.dirname(SCRIPT_DIR)
-ASSETS_DIR = os.path.join(REPO_ROOT, "assets")
-FONTS_DIR = os.path.join(REPO_ROOT, "src", "fonts")
-CACHE_FILE = os.path.join(ASSETS_DIR, "github.json")
+# Signature Brand Colors
+OLIVE_ACCENT = "#8A9A5B"
+OLIVE_GLOW = "#B4C97F"
+CHROME_HERO = "#0E1D33"
+NAVY_DEEP = "#070B14"
+CREAM = "#F0F4FA"
+W = 1280
 
+THEMES = {
+    "dark": dict(
+        bg="#070B14",
+        cell="#0D1424",
+        fg="#E6ECF5",
+        dim="#7E8C9F",
+        edge="#1E2A3E",
+        empty="#121A2A",
+        hero_bg="#0E1E35",
+        accent=OLIVE_ACCENT,
+        accent_bright=OLIVE_GLOW,
+    ),
+    "light": dict(
+        bg="#F4F6F9",
+        cell="#FFFFFF",
+        fg="#0A111E",
+        dim="#5A6677",
+        edge="#D5DCE6",
+        empty="#E9EFF7",
+        hero_bg="#E2EAF4",
+        accent="#55692A",
+        accent_bright="#708736",
+    ),
+}
 
-# ---------------------------------------------------------------------------
-# Font Loader
-# ---------------------------------------------------------------------------
+# GitHub's 0-4 activity levels in Olive Green
+LEVELS = ["", "#25331C", "#435928", "#688836", OLIVE_GLOW]
+LEVELS_LIGHT = ["", "#D9E8BA", "#B2D17E", "#88AF44", "#5B7C22"]
 
-def load_fonts() -> Dict[str, Face]:
-    """Load all vector font faces from src/fonts/."""
-    fonts = {
-        "mono": Face(os.path.join(FONTS_DIR, "IBMPlexMono-Regular.woff2")),
-        "monob": Face(os.path.join(FONTS_DIR, "IBMPlexMono-Bold.woff2")),
-        "disp": Face(os.path.join(FONTS_DIR, "BigShouldersDisplay-Bold.woff2")),
-        "audio": Face(os.path.join(FONTS_DIR, "Audiowide-Regular.woff2")),
-    }
-    return fonts
+# Flagship projects with plain English descriptions
+PROJECTS = [
+    dict(
+        slug="semcache",
+        name="SemCache",
+        repo="SemCache",
+        url="https://github.com/sshloktiwarii/SemCache",
+        line="Remembers answers from AI so you get instant responses without paying twice.",
+        tag="Performance Engine",
+        stack="Python · Vector Cosine · In-Memory Cache",
+    ),
+    dict(
+        slug="agentvault",
+        name="AgentVault",
+        repo="AgentVault",
+        url="https://github.com/sshloktiwarii/AgentVault",
+        line="A black-box flight recorder that tracks every move your AI agents make in real time.",
+        tag="Security & Audit",
+        stack="Rust · SQLite WAL · Telemetry",
+    ),
+    dict(
+        slug="strata",
+        name="Strata",
+        repo="strata",
+        url="https://github.com/sshloktiwarii/strata",
+        line="A control center that runs and organizes large fleets of autonomous AI workers.",
+        tag="Fleet Orchestration",
+        stack="TypeScript · Multi-Agent Runtime · Distributed",
+    ),
+    dict(
+        slug="cortex",
+        name="Cortex",
+        repo="Cortex",
+        url="https://github.com/sshloktiwarii/Cortex",
+        line="The central brain that coordinates multiple specialized agents to solve big problems.",
+        tag="Cognitive Core",
+        stack="Local LLMs · Task Routing · Memory Synthesis",
+    ),
+]
 
+STACK = ["Rust", "Go", "Python", "TypeScript", "C++", "Linux", "Docker", "SQLite", "Redis", "React", "Next.js", "Node.js"]
+INTERESTS = [
+    "distributed systems",
+    "systems engineering",
+    "local-first AI",
+    "eBPF & low latency",
+    "database internals",
+    "autonomous agent fleets",
+    "high-performance compute",
+]
+STATUS_LINES = [
+    "autonomous agent runtimes",
+    "low-latency distributed tools",
+    "local-first AI infrastructures",
+    "bulletproof systems code",
+]
 
-# ---------------------------------------------------------------------------
-# Typography Helpers
-# ---------------------------------------------------------------------------
-
-def wrap_text(face: Face, text: str, max_w: float, size: float, letter_spacing: float = 0.0) -> List[str]:
-    """Wrap text to fit within max_w pixels using exact vector metrics."""
-    words = text.split()
-    lines: List[str] = []
-    current_words: List[str] = []
-
-    for word in words:
-        candidate = " ".join(current_words + [word])
-        w = face.measure_text(candidate, size=size, letter_spacing=letter_spacing).width
-        if w <= max_w:
-            current_words.append(word)
-        else:
-            if current_words:
-                lines.append(" ".join(current_words))
-            current_words = [word]
-
-    if current_words:
-        lines.append(" ".join(current_words))
-
-    return lines
-
-
-# ---------------------------------------------------------------------------
-# GitHub Contribution Data: GraphQL Fetcher & Realistic Cache Synthesizer
-# ---------------------------------------------------------------------------
-
-def generate_default_github_data(
-    username: str = "sshloktiwarii",
-    target_total: int = 894,
-    current_streak: int = 24,
-    longest_streak: int = 68,
-    end_date: Optional[datetime.date] = None,
-) -> Dict[str, Any]:
-    """Generate deterministic, realistic 52-week contribution telemetry data."""
-    if end_date is None:
-        end_date = datetime.date(2026, 11, 4)
-
-    # Current week ends on Saturday (Sunday=0 ... Saturday=6)
-    days_to_sat = (5 - end_date.weekday()) % 7
-    end_sat = end_date + datetime.timedelta(days=days_to_sat)
-    start_sun = end_sat - datetime.timedelta(days=52 * 7 - 1)
-
-    random.seed(1337)
-    all_days: List[Dict[str, Any]] = []
-    cur = start_sun
-
-    # Generate 52 weeks * 7 days = 364 days
-    for idx in range(52 * 7):
-        days_from_end = (end_date - cur).days
-        is_future = (cur > end_date)
-        is_weekend = (cur.weekday() in (5, 6))
-
-        if is_future:
-            count = 0
-        elif 0 <= days_from_end < current_streak:
-            # Active current streak
-            count = random.choice([2, 3, 4, 5, 6, 8, 10, 12])
-        elif current_streak <= days_from_end < current_streak + 2:
-            # Clean streak boundary break
-            count = 0
-        elif 160 <= idx < 160 + longest_streak:
-            # Longest streak block in spring/summer
-            count = random.choice([1, 2, 3, 4, 5, 7, 9, 14])
-        else:
-            if is_weekend:
-                count = random.choices([0, 1, 2, 3, 4], weights=[0.60, 0.22, 0.10, 0.05, 0.03])[0]
-            else:
-                count = random.choices([0, 1, 2, 3, 4, 5, 6, 8, 12], weights=[0.16, 0.16, 0.18, 0.16, 0.14, 0.09, 0.06, 0.03, 0.02])[0]
-
-        all_days.append({
-            "date": cur.isoformat(),
-            "weekday": (cur.weekday() + 1) % 7, # 0 = Sunday
-            "count": count,
-        })
-        cur += datetime.timedelta(days=1)
-
-    # Scale non-streak days to hit exact target total
-    current_sum = sum(d["count"] for d in all_days)
-    diff = target_total - current_sum
-
-    # Adjust safely on past days outside streaks
-    eligible_indices = [
-        i for i, d in enumerate(all_days)
-        if d["count"] > 0
-        and (end_date - datetime.date.fromisoformat(d["date"])).days >= (current_streak + 2)
-        and not (160 <= i < 160 + longest_streak)
-    ]
-    random.shuffle(eligible_indices)
-
-    adj_idx = 0
-    while diff != 0 and adj_idx < len(eligible_indices):
-        idx = eligible_indices[adj_idx]
-        if diff > 0:
-            all_days[idx]["count"] += 1
-            diff -= 1
-        elif diff < 0 and all_days[idx]["count"] > 1:
-            all_days[idx]["count"] -= 1
-            diff += 1
-        adj_idx = (adj_idx + 1) % len(eligible_indices)
-
-    # Convert to weeks matrix with levels
-    weeks: List[Dict[str, Any]] = []
-    for w in range(52):
-        week_days = []
-        for d in range(7):
-            day_data = all_days[w * 7 + d]
-            c = day_data["count"]
-            if c == 0:
-                lvl_str = "NONE"
-                lvl_int = 0
-            elif c <= 3:
-                lvl_str = "FIRST_QUARTILE"
-                lvl_int = 1
-            elif c <= 6:
-                lvl_str = "SECOND_QUARTILE"
-                lvl_int = 2
-            elif c <= 10:
-                lvl_str = "THIRD_QUARTILE"
-                lvl_int = 3
-            else:
-                lvl_str = "FOURTH_QUARTILE"
-                lvl_int = 4
-
-            week_days.append({
-                "date": day_data["date"],
-                "weekday": day_data["weekday"],
-                "contributionCount": c,
-                "contributionLevel": lvl_str,
-                "level": lvl_int,
-            })
-        weeks.append({"contributionDays": week_days})
-
-    total_calc = sum(d["contributionCount"] for w in weeks for d in w["contributionDays"])
-
-    return {
-        "user": username,
-        "generated_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-        "totalContributions": total_calc,
-        "currentStreak": current_streak,
-        "longestStreak": longest_streak,
-        "weeks": weeks,
-    }
+# ---------------------------------------------------------------- data
 
 
-def fetch_github_api(username: str, token: str) -> Optional[Dict[str, Any]]:
-    """Fetch live contribution calendar using GitHub GraphQL API."""
-    query = """
-    query($login: String!) {
-      user(login: $login) {
-        contributionsCollection {
-          contributionCalendar {
-            totalContributions
-            weeks {
-              contributionDays {
-                contributionCount
-                contributionLevel
-                date
-                weekday
-              }
-            }
-          }
-        }
-      }
-    }
-    """
+def graphql(query, token):
     req = urllib.request.Request(
         "https://api.github.com/graphql",
-        data=json.dumps({"query": query, "variables": {"login": username}}).encode("utf-8"),
-        headers={
-            "Authorization": f"Bearer {token}",
-            "User-Agent": "Antigravity-Asset-Builder",
-            "Content-Type": "application/json",
-        },
+        data=json.dumps({"query": query}).encode(),
+        headers={"Authorization": f"bearer {token}", "User-Agent": USER},
     )
-    try:
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
-            if "data" in data and data["data"].get("user"):
-                cal = data["data"]["user"]["contributionsCollection"]["contributionCalendar"]
-                weeks = cal["weeks"]
-                # Compute streaks and numeric levels
-                level_map = {
-                    "NONE": 0,
-                    "FIRST_QUARTILE": 1,
-                    "SECOND_QUARTILE": 2,
-                    "THIRD_QUARTILE": 3,
-                    "FOURTH_QUARTILE": 4,
-                }
-                flat_days = []
-                for w in weeks:
-                    for d in w["contributionDays"]:
-                        d["level"] = level_map.get(d.get("contributionLevel", "NONE"), 0)
-                        flat_days.append(d)
-
-                # Streaks
-                longest = 0
-                temp = 0
-                for d in flat_days:
-                    if d["contributionCount"] > 0:
-                        temp += 1
-                        if temp > longest:
-                            longest = temp
-                    else:
-                        temp = 0
-
-                curr = 0
-                for d in reversed(flat_days):
-                    if d["contributionCount"] > 0:
-                        curr += 1
-                    else:
-                        break
-
-                return {
-                    "user": username,
-                    "generated_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-                    "totalContributions": cal["totalContributions"],
-                    "currentStreak": curr,
-                    "longestStreak": longest,
-                    "weeks": weeks,
-                }
-    except Exception as e:
-        print(f"[*] GitHub API fetch note: {e}")
-    return None
+    with urllib.request.urlopen(req, timeout=30) as res:
+        body = json.load(res)
+    if "errors" in body:
+        raise RuntimeError(body["errors"])
+    return body["data"]
 
 
-def fetch_or_load_github_data() -> Dict[str, Any]:
-    """Retrieve contribution data from API, existing cache, or generate realistic defaults."""
-    token = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
-    data = None
-
-    if token:
-        for u in ("sshloktiwarii", "shloktiwari"):
-            data = fetch_github_api(u, token)
-            if data and data.get("totalContributions", 0) > 0:
-                print(f"[+] Successfully fetched live GitHub data for '{u}': {data['totalContributions']} contributions.")
-                break
-
-    if not data and os.path.exists(CACHE_FILE):
-        try:
-            with open(CACHE_FILE, "r", encoding="utf-8") as f:
-                cached = json.load(f)
-                if cached.get("weeks") and len(cached["weeks"]) >= 50:
-                    print(f"[+] Loaded GitHub telemetry from cache: {CACHE_FILE}")
-                    return cached
-        except Exception as e:
-            print(f"[*] Cache read warning: {e}")
-
-    if not data:
-        print("[+] Generating realistic synthetic contribution telemetry (~894 contributions)...")
-        data = generate_default_github_data()
-
-    # Ensure output directory exists and cache file is written
-    os.makedirs(ASSETS_DIR, exist_ok=True)
-    with open(CACHE_FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2)
-    print(f"[+] Saved GitHub telemetry cache to {CACHE_FILE}")
+def refresh(token):
+    q = """{ user(login: "%s") {
+      contributionsCollection { contributionCalendar { totalContributions
+        weeks { contributionDays { date contributionCount contributionLevel } } } }
+      repositories(first: 100, ownerAffiliations: OWNER, privacy: PUBLIC, isFork: false) { totalCount
+        nodes { name stargazerCount
+          languages(first: 8, orderBy: {field: SIZE, direction: DESC}) { edges { size node { name color } } } } } } }""" % USER
+    user = graphql(q, token)["user"]
+    level = {"NONE": 0, "FIRST_QUARTILE": 1, "SECOND_QUARTILE": 2, "THIRD_QUARTILE": 3, "FOURTH_QUARTILE": 4}
+    cal = user["contributionsCollection"]["contributionCalendar"]
+    days = [
+        [d["date"], d["contributionCount"], level[d["contributionLevel"]]]
+        for w in cal["weeks"]
+        for d in w["contributionDays"]
+    ]
+    langs, stars = {}, {}
+    for r in user["repositories"]["nodes"]:
+        stars[r["name"]] = r["stargazerCount"]
+        for e in r["languages"]["edges"]:
+            n = e["node"]["name"]
+            langs.setdefault(n, [0, e["node"]["color"] or "#888"])[0] += e["size"]
+    data = dict(
+        updated=dt.date.today().isoformat(),
+        total=cal["totalContributions"],
+        days=days,
+        repos=user["repositories"]["totalCount"],
+        stars=stars,
+        languages=sorted(([k, v[0], v[1]] for k, v in langs.items()), key=lambda x: -x[1]),
+    )
+    with open(DATA, "w") as f:
+        json.dump(data, f, indent=1)
     return data
 
 
-# ---------------------------------------------------------------------------
-# SVG Generator 1: Hero Bento Cards (assets/bento-{dark,light}.svg)
-# ---------------------------------------------------------------------------
+def load():
+    token = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
+    if not token:
+        try:
+            token = subprocess.check_output(["gh", "auth", "token"]).decode().strip()
+        except Exception:
+            token = None
+    if token:
+        try:
+            return refresh(token)
+        except Exception as error:
+            if os.environ.get("CI"):
+                raise
+            print(f"refresh failed, drawing from saved data: {error}")
+    with open(DATA) as f:
+        return json.load(f)
 
-def generate_bento_svg(theme: str, data: Dict[str, Any], fonts: Dict[str, Face]) -> str:
-    """Generate high-end 1280x460 Hero Bento Card with embedded Liquid Chrome mesh."""
-    pal = get_palette(theme)
-    w, h = 1280.0, 460.0
 
-    # Procedural liquid chrome mesh for right panel
-    mesh_svg = liquid_chrome_mesh(
-        w=740,
-        h=460,
-        ribbons=6,
-        palette_name=theme,
-        mesh_id=f"bento_{theme}",
-        animated=True,
-        drift_duration=14.0,
-        seed=101,
-        samples=64,
-        show_grid=False,
-        as_svg=False,
-        opacity=0.92,
+def streaks(days):
+    longest = run = 0
+    for _, count, _ in days:
+        run = run + 1 if count else 0
+        longest = max(longest, run)
+    current, i = 0, len(days) - 1
+    if i >= 0 and days[i][1] == 0:
+        i -= 1
+    while i >= 0 and days[i][1]:
+        current, i = current + 1, i - 1
+    return current, longest
+
+
+# ---------------------------------------------------------------- typography
+
+
+class Face:
+    def __init__(self, file):
+        self.font = TTFont(os.path.join(SRC, "fonts", file))
+        self.glyphs = self.font.getGlyphSet()
+        self.cmap = self.font.getBestCmap()
+        self.upm = self.font["head"].unitsPerEm
+        self.hmtx = self.font["hmtx"]
+
+    def path(self, s, size, spacing):
+        k = size / self.upm
+        pen = SVGPathPen(self.glyphs, ntos=lambda v: f"{v:.1f}".rstrip("0").rstrip("."))
+        x, extra = 0.0, []
+        for i, ch in enumerate(s):
+            if ch in SYMBOLS:
+                pts = " ".join(f"{x + px * size / 1000:.1f},{-py * size / 1000:.1f}" for px, py in SYMBOLS[ch])
+                extra.append(f"M{pts}Z")
+                advance = 760 * size / 1000
+            else:
+                name = self.cmap.get(ord(ch)) or self.cmap.get(ord("?"))
+                self.glyphs[name].draw(TransformPen(pen, (k, 0, 0, -k, x, 0)))
+                advance = self.hmtx[name][0] * k
+            x += advance + (spacing if i < len(s) - 1 else 0)
+        return pen.getCommands() + "".join(extra), x
+
+
+def _star():
+    pts = []
+    for i in range(10):
+        r = 360 if i % 2 == 0 else 150
+        a = math.pi / 2 + i * math.pi / 5
+        pts.append((380 + r * math.cos(a), 300 + r * math.sin(a)))
+    return pts
+
+
+SYMBOLS = {
+    "★": _star(),
+    "↗": [(130, 60), (480, 410), (480, 230), (570, 230), (570, 570), (230, 570), (230, 480), (410, 480), (60, 130)],
+}
+
+FACES = {
+    "WM": "Audiowide-Regular.woff2",
+    "Disp": "BigShouldersDisplay-Bold.woff2",
+    "Mono": "IBMPlexMono-Regular.woff2",
+    "MonoB": "IBMPlexMono-Bold.woff2",
+}
+_loaded = {}
+REDUCED = "@media (prefers-reduced-motion: reduce){*{animation:none!important}}"
+
+
+def svg(h, body, css, w=W, title=""):
+    return (
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}" role="img">'
+        f"<title>{html.escape(title)}</title><style>{css}{REDUCED}</style>{body}</svg>"
     )
 
-    # Text elements
-    f_mono = fonts["mono"]
-    f_monob = fonts["monob"]
-    f_audio = fonts["audio"]
 
-    # 1. Status Pill Text
-    status_text = "STATUS: ACTIVE // LOW-LATENCY SYSTEMS"
-    status_path = f_monob.svg_path_tag(
-        text=status_text,
-        size=10.5,
-        x=88.0,
-        y=62.0,
-        fill=pal["olive_glow"] if theme == "dark" else pal["olive"],
-        letter_spacing=1.4,
-        baseline="middle",
+def esc(s):
+    return html.escape(str(s))
+
+
+def text(x, y, s, size, family="Mono", fill=None, anchor=None, cls=None, spacing=None):
+    face_obj = _loaded.get(family) or _loaded.setdefault(family, Face(FACES[family]))
+    gap = float(spacing.rstrip("em")) * size if spacing else 0
+    d, width = face_obj.path(str(s), size, gap)
+    if anchor == "middle":
+        x -= width / 2
+    elif anchor == "end":
+        x -= width
+    c = f' class="{cls}"' if cls else ""
+    f = f' fill="{fill}"' if fill else ""
+    return f'<path transform="translate({x:.1f} {y:.1f})"{c}{f} d="{d}"/>'
+
+
+def cell(x, y, w, h, t, fill=None):
+    return (
+        f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="22" fill="{fill or t["cell"]}" '
+        f'stroke="{t["edge"] if not fill else fill}" stroke-width="1.5"/>'
     )
 
-    # 2. Main Title: "SHLOK TIWARI"
-    title_path = f_audio.svg_path_tag(
-        text="SHLOK TIWARI",
-        size=50.0,
-        x=56.0,
-        y=145.0,
-        fill=f"url(#bento_title_{theme})",
-        letter_spacing=3.2,
-        baseline="alphabetic",
+
+def label(x, y, s, t):
+    return text(x, y, s.upper(), 13, fill=t["dim"], spacing=".16em")
+
+
+# ---------------------------------------------------------------- mascot & terrain
+
+
+def face(x, y, size):
+    """Interactive winking mascot face, matching harsh4k's beloved animation."""
+    def inner(name, suffix):
+        with open(os.path.join(SRC, "faces", name)) as f:
+            s = f.read()
+        s = re.sub(r"^<svg[^>]*>", "", s).rsplit("</svg>", 1)[0]
+        s = re.sub(r"<title>.*?</title>", "", s)
+        return s.replace('id="ink"', f'id="ink{suffix}"').replace("url(#ink)", f"url(#ink{suffix})")
+
+    box = f'x="{x}" y="{y}" width="{size}" height="{size}" viewBox="400 330 640 640"'
+    return (
+        f'<g class="bob"><svg {box} class="open">{inner("face.svg", "a")}</svg>'
+        f'<svg {box} class="wink">{inner("face-wink.svg", "b")}</svg></g>'
     )
 
-    # 3. Subtitle
-    subtitle_text = "SYSTEMS ARCHITECT · DISTRIBUTED RUNTIMES · LOCAL AI"
-    subtitle_path = f_monob.svg_path_tag(
-        text=subtitle_text,
-        size=13.0,
-        x=58.0,
-        y=188.0,
-        fill=pal["dim"],
-        letter_spacing=1.8,
-        baseline="alphabetic",
-    )
 
-    # 4. Tagline
-    tagline_text = "Autonomous multi-agent orchestration, in-memory caching runtimes & deterministic flight recorders."
-    tagline_path = f_mono.svg_path_tag(
-        text=tagline_text,
-        size=12.2,
-        x=58.0,
-        y=226.0,
-        fill=pal["fg"],
-        letter_spacing=0.4,
-        baseline="alphabetic",
-        extra_attrs='opacity="0.9"',
-    )
-
-    # 5. Badges Section Header
-    sec_label = "CORE RUNTIMES & INFRASTRUCTURE"
-    sec_path = f_monob.svg_path_tag(
-        text=sec_label,
-        size=9.5,
-        x=58.0,
-        y=288.0,
-        fill=pal["dim"],
-        letter_spacing=1.6,
-        baseline="alphabetic",
-        extra_attrs='opacity="0.75"',
-    )
-
-    # 6. Badges Rows
-    row1_items = ["Rust", "C++", "Python", "TypeScript"]
-    row2_items = ["SQLite WAL", "Distributed Agents", "Local AI Runtimes"]
-
-    badge_svg_parts: List[str] = []
-    
-    # Render Row 1
-    cur_x = 58.0
-    row1_y = 308.0
-    for item in row1_items:
-        tw = f_monob.measure_text(item, size=10.5, letter_spacing=0.6).width
-        pw = round(tw + 22.0, 1)
-        ph = 26.0
-        badge_svg_parts.append(
-            f'<rect x="{cur_x}" y="{row1_y}" width="{pw}" height="{ph}" rx="5" '
-            f'fill="{pal["badge_bg"]}" stroke="{pal["edge"]}" stroke-width="1.0" />'
-        )
-        t_path = f_monob.svg_path_tag(
-            text=item,
-            size=10.5,
-            x=cur_x + pw / 2.0,
-            y=row1_y + ph / 2.0,
-            fill=pal["badge_fg"],
-            letter_spacing=0.6,
-            align="center",
-            baseline="middle",
-        )
-        badge_svg_parts.append(t_path)
-        cur_x += pw + 8.0
-
-    # Render Row 2
-    cur_x = 58.0
-    row2_y = 344.0
-    for item in row2_items:
-        tw = f_monob.measure_text(item, size=10.5, letter_spacing=0.6).width
-        pw = round(tw + 22.0, 1)
-        ph = 26.0
-        badge_svg_parts.append(
-            f'<rect x="{cur_x}" y="{row2_y}" width="{pw}" height="{ph}" rx="5" '
-            f'fill="{pal["badge_bg"]}" stroke="{pal["edge"]}" stroke-width="1.0" />'
-        )
-        t_path = f_monob.svg_path_tag(
-            text=item,
-            size=10.5,
-            x=cur_x + pw / 2.0,
-            y=row2_y + ph / 2.0,
-            fill=pal["badge_fg"],
-            letter_spacing=0.6,
-            align="center",
-            baseline="middle",
-        )
-        badge_svg_parts.append(t_path)
-        cur_x += pw + 8.0
-
-    # 7. Bottom Hardware Telemetry Bar
-    telemetry_left = f_mono.svg_path_tag(
-        text="ZERO-BLOAT COMPILED RUNTIMES",
-        size=9.5,
-        x=74.0,
-        y=408.0,
-        fill=pal["dim"],
-        letter_spacing=1.0,
-        baseline="middle",
-    )
-    telemetry_right = f_mono.svg_path_tag(
-        text="DETERMINISTIC WAL // LOCAL-FIRST",
-        size=9.5,
-        x=330.0,
-        y=408.0,
-        fill=pal["dim"],
-        letter_spacing=1.0,
-        baseline="middle",
-    )
-
-    # 8. Top-right futuristic coordinate watermark
-    watermark_1 = f_mono.svg_path_tag(
-        text="SYS_ID: ST-0x9F // VER: 4.2.0-PROD",
-        size=9.0,
-        x=1224.0,
-        y=48.0,
-        fill=pal["dim"],
-        letter_spacing=1.2,
-        align="right",
-        baseline="alphabetic",
-        extra_attrs='opacity="0.65"',
-    )
-    watermark_2 = f_mono.svg_path_tag(
-        text="LATENCY < 1.2ms // DETERMINISTIC DISPATCH",
-        size=9.0,
-        x=1224.0,
-        y=64.0,
-        fill=pal["dim"],
-        letter_spacing=1.2,
-        align="right",
-        baseline="alphabetic",
-        extra_attrs='opacity="0.55"',
-    )
-
-    # Background card gradients
-    if theme == "dark":
-        bg_fill = "url(#bento_bg_dark)"
-        border_fill = "url(#bento_border_dark)"
-    else:
-        bg_fill = "url(#bento_bg_light)"
-        border_fill = "url(#bento_border_light)"
-
-    svg = f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" width="{w}" height="{h}">
-  <defs>
-    <!-- Card Gradients -->
-    <linearGradient id="bento_bg_dark" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#0B111E" />
-      <stop offset="60%" stop-color="#080C16" />
-      <stop offset="100%" stop-color="#050810" />
-    </linearGradient>
-    <linearGradient id="bento_bg_light" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#FFFFFF" />
-      <stop offset="60%" stop-color="#F4F6F9" />
-      <stop offset="100%" stop-color="#E9EDF2" />
-    </linearGradient>
-
-    <!-- Milled Edge Gradients -->
-    <linearGradient id="bento_border_dark" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#2A374A" />
-      <stop offset="35%" stop-color="#8A98A8" stop-opacity="0.8" />
-      <stop offset="70%" stop-color="#2A374A" />
-      <stop offset="85%" stop-color="#8A9A5B" stop-opacity="0.7" />
-      <stop offset="100%" stop-color="#2A374A" />
-    </linearGradient>
-    <linearGradient id="bento_border_light" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#D3D8E2" />
-      <stop offset="40%" stop-color="#8A98A8" stop-opacity="0.9" />
-      <stop offset="75%" stop-color="#D3D8E2" />
-      <stop offset="100%" stop-color="#B8C4D4" />
-    </linearGradient>
-
-    <!-- Title Liquid Chrome Specular Gradient -->
-    <linearGradient id="bento_title_dark" x1="0%" y1="0%" x2="100%" y2="80%">
-      <stop offset="0%" stop-color="#4A5C74" />
-      <stop offset="22%" stop-color="#8A98A8" />
-      <stop offset="48%" stop-color="#FFFFFF" />
-      <stop offset="62%" stop-color="#D2D9E5" />
-      <stop offset="82%" stop-color="#8A98A8" />
-      <stop offset="100%" stop-color="#2E3A4B" />
-    </linearGradient>
-    <linearGradient id="bento_title_light" x1="0%" y1="0%" x2="100%" y2="80%">
-      <stop offset="0%" stop-color="#0C1322" />
-      <stop offset="28%" stop-color="#2E3D52" />
-      <stop offset="52%" stop-color="#556982" />
-      <stop offset="78%" stop-color="#1B283A" />
-      <stop offset="100%" stop-color="#090E18" />
-    </linearGradient>
-
-    <!-- Hairline Specular Divider -->
-    <linearGradient id="hairline_grad_{theme}" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="{pal['edge']}" stop-opacity="0.0" />
-      <stop offset="20%" stop-color="{pal['edge']}" stop-opacity="0.9" />
-      <stop offset="50%" stop-color="#FFFFFF" stop-opacity="0.8" />
-      <stop offset="80%" stop-color="{pal['edge']}" stop-opacity="0.9" />
-      <stop offset="100%" stop-color="{pal['edge']}" stop-opacity="0.0" />
-    </linearGradient>
-
-    <!-- Card Clip Path -->
-    <clipPath id="bento_clip_{theme}">
-      <rect x="1" y="1" width="1278" height="458" rx="15" />
-    </clipPath>
-
-    <!-- Smooth mask for right-side liquid chrome mesh -->
-    <mask id="mesh_fade_mask_{theme}">
-      <linearGradient id="mesh_fade_grad_{theme}" x1="0%" y1="0%" x2="100%" y2="0%">
-        <stop offset="0%" stop-color="#000000" stop-opacity="0" />
-        <stop offset="20%" stop-color="#FFFFFF" stop-opacity="0.35" />
-        <stop offset="55%" stop-color="#FFFFFF" stop-opacity="0.9" />
-        <stop offset="100%" stop-color="#FFFFFF" stop-opacity="1" />
-      </linearGradient>
-      <rect x="0" y="0" width="740" height="460" fill="url(#mesh_fade_grad_{theme})" />
-    </mask>
-  </defs>
-
-  <!-- Outer Card Frame -->
-  <rect x="0.5" y="0.5" width="1279" height="459" rx="16" fill="{bg_fill}" stroke="{border_fill}" stroke-width="1.5" />
-
-  <!-- Embedded Liquid Chrome Undulating Mesh -->
-  <g clip-path="url(#bento_clip_{theme})">
-    <g transform="translate(540, 0)" mask="url(#mesh_fade_mask_{theme})">
-      {mesh_svg}
-    </g>
-  </g>
-
-  <!-- Subtle Precision Corner Tick Crosshairs -->
-  <g stroke="{pal['dim']}" stroke-width="1" opacity="0.4">
-    <line x1="24" y1="28" x2="32" y2="28" />
-    <line x1="28" y1="24" x2="28" y2="32" />
-    <line x1="1248" y1="28" x2="1256" y2="28" />
-    <line x1="1252" y1="24" x2="1252" y2="32" />
-    <line x1="24" y1="432" x2="32" y2="432" />
-    <line x1="28" y1="428" x2="28" y2="436" />
-    <line x1="1248" y1="432" x2="1256" y2="432" />
-    <line x1="1252" y1="428" x2="1252" y2="436" />
-  </g>
-
-  <!-- Status Pill -->
-  <g>
-    <rect x="56" y="48" width="288" height="28" rx="14" fill="{pal['badge_bg']}" stroke="{pal['edge']}" stroke-width="1.0" />
-    <!-- Olive Radar Beacon -->
-    <circle cx="74" cy="62" r="3.5" fill="{pal['olive']}" />
-    <circle cx="74" cy="62" r="3.5" fill="none" stroke="{pal['olive_glow']}" stroke-width="1.2">
-      <animate attributeName="r" values="3.5;9.0;11.5" dur="2.2s" repeatCount="indefinite" />
-      <animate attributeName="opacity" values="0.85;0.2;0.0" dur="2.2s" repeatCount="indefinite" />
-    </circle>
-    {status_path}
-  </g>
-
-  <!-- Main Hero Typography -->
-  {title_path}
-  {subtitle_path}
-  {tagline_path}
-
-  <!-- Hairline Specular Divider -->
-  <line x1="58" y1="262" x2="560" y2="262" stroke="url(#hairline_grad_{theme})" stroke-width="1.2" />
-
-  <!-- Core Runtimes & Infrastructure Badges -->
-  {sec_path}
-  {' '.join(badge_svg_parts)}
-
-  <!-- Bottom Hardware Telemetry Bar -->
-  <circle cx="62" cy="408" r="3" fill="{pal['olive']}" />
-  {telemetry_left}
-  <circle cx="318" cy="408" r="3" fill="{pal['dim']}" />
-  {telemetry_right}
-
-  <!-- Top-right Futuristic Telemetry Watermarks -->
-  {watermark_1}
-  {watermark_2}
-</svg>
-"""
-    return svg
+FACE_CSS = (
+    ".wink{opacity:0;animation:wink 5s infinite}.open{animation:open 5s infinite}"
+    "@keyframes wink{0%,86%,96%,100%{opacity:0}88%,94%{opacity:1}}"
+    "@keyframes open{0%,86%,96%,100%{opacity:1}88%,94%{opacity:0}}"
+    ".bob{animation:bob 4s ease-in-out infinite;transform-box:fill-box;transform-origin:center}"
+    "@keyframes bob{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-6px) rotate(3deg)}}"
+)
 
 
-# ---------------------------------------------------------------------------
-# SVG Generator 2: 52-Week Contribution Matrix (assets/activity-{dark,light}.svg)
-# ---------------------------------------------------------------------------
-
-def generate_activity_svg(theme: str, data: Dict[str, Any], fonts: Dict[str, Face]) -> str:
-    """Generate 1280x250 Contribution Heatmap Matrix with olive green heat levels."""
-    pal = get_palette(theme)
-    w, h = 1280.0, 250.0
-
-    f_mono = fonts["mono"]
-    f_monob = fonts["monob"]
-
-    total_commits = data.get("totalContributions", 894)
-    current_streak = data.get("currentStreak", 24)
-    longest_streak = data.get("longestStreak", 68)
-    weeks = data.get("weeks", [])
-
-    # Olive color levels
-    if theme == "dark":
-        level_colors = [
-            {"fill": "#121A29", "stroke": "#1D283C"}, # Level 0
-            {"fill": "#23301A", "stroke": "#2F4222"}, # Level 1
-            {"fill": "#425828", "stroke": "#557234"}, # Level 2
-            {"fill": "#648438", "stroke": "#7E9F4A"}, # Level 3
-            {"fill": "#8A9A5B", "stroke": "#B4C97F"}, # Level 4
-        ]
-        card_bg = "url(#act_bg_dark)"
-        card_border = "url(#act_border_dark)"
-    else:
-        level_colors = [
-            {"fill": "#E8EEF5", "stroke": "#D2DCE6"}, # Level 0
-            {"fill": "#D4E4C6", "stroke": "#BCCFA8"}, # Level 1
-            {"fill": "#AEC694", "stroke": "#95B079"}, # Level 2
-            {"fill": "#86A562", "stroke": "#6F8D4B"}, # Level 3
-            {"fill": "#637537", "stroke": "#4E6028"}, # Level 4
-        ]
-        card_bg = "url(#act_bg_light)"
-        card_border = "url(#act_border_light)"
-
-    # Header title
-    header_path = f_monob.svg_path_tag(
-        text="CONTRIBUTION TELEMETRY // 52-WEEK COMMIT TIMELINE",
-        size=12.0,
-        x=74.0,
-        y=36.0,
-        fill=pal["fg"],
-        letter_spacing=1.6,
-        baseline="middle",
-    )
-
-    # Stats badges on right
-    stat1_text = f"{total_commits} CONTRIBUTIONS"
-    stat1_w = f_monob.measure_text(stat1_text, size=10.5, letter_spacing=0.8).width + 20.0
-    stat1_x = 760.0
-    stat1_rect = f'<rect x="{stat1_x}" y="24" width="{stat1_w}" height="24" rx="12" fill="{pal["badge_bg"]}" stroke="{pal["accent_border"]}" stroke-width="1.0" />'
-    stat1_path = f_monob.svg_path_tag(
-        text=stat1_text,
-        size=10.5,
-        x=stat1_x + stat1_w / 2.0,
-        y=36.0,
-        fill=pal["olive_glow"] if theme == "dark" else pal["olive"],
-        letter_spacing=0.8,
-        align="center",
-        baseline="middle",
-    )
-
-    stat2_text = f"CURRENT STREAK: {current_streak} DAYS"
-    stat2_w = f_monob.measure_text(stat2_text, size=10.5, letter_spacing=0.8).width + 20.0
-    stat2_x = stat1_x + stat1_w + 10.0
-    stat2_rect = f'<rect x="{stat2_x}" y="24" width="{stat2_w}" height="24" rx="12" fill="{pal["badge_bg"]}" stroke="{pal["edge"]}" stroke-width="1.0" />'
-    stat2_path = f_monob.svg_path_tag(
-        text=stat2_text,
-        size=10.5,
-        x=stat2_x + stat2_w / 2.0,
-        y=36.0,
-        fill=pal["fg"],
-        letter_spacing=0.8,
-        align="center",
-        baseline="middle",
-    )
-
-    stat3_text = f"LONGEST: {longest_streak} DAYS"
-    stat3_w = f_monob.measure_text(stat3_text, size=10.5, letter_spacing=0.8).width + 20.0
-    stat3_x = stat2_x + stat2_w + 10.0
-    stat3_rect = f'<rect x="{stat3_x}" y="24" width="{stat3_w}" height="24" rx="12" fill="{pal["badge_bg"]}" stroke="{pal["edge"]}" stroke-width="1.0" />'
-    stat3_path = f_monob.svg_path_tag(
-        text=stat3_text,
-        size=10.5,
-        x=stat3_x + stat3_w / 2.0,
-        y=36.0,
-        fill=pal["dim"],
-        letter_spacing=0.8,
-        align="center",
-        baseline="middle",
-    )
-
-    # 52 weeks grid layout
-    # Cell size 15, pitch 20 (gap 5). Width = 52 * 20 - 5 = 1035.
-    grid_x0 = 136.0
-    grid_y0 = 74.0
-    cell_size = 15.0
-    pitch = 20.0
-
-    # Weekday labels on left
-    day_labels_svg: List[str] = []
-    weekday_names = {1: "Mon", 3: "Wed", 5: "Fri"}
-    for r_idx, name in weekday_names.items():
-        ly = grid_y0 + r_idx * pitch + cell_size / 2.0
-        p = f_mono.svg_path_tag(
-            text=name,
-            size=9.5,
-            x=grid_x0 - 12.0,
-            y=ly,
-            fill=pal["dim"],
-            letter_spacing=0.5,
-            align="right",
-            baseline="middle",
-            extra_attrs='opacity="0.75"',
-        )
-        day_labels_svg.append(p)
-
-    # Month labels along the top
-    month_labels_svg: List[str] = []
-    prev_month = None
-    last_col_placed = -10
-
-    for col_idx, w_data in enumerate(weeks[:52]):
-        days_in_w = w_data.get("contributionDays", [])
-        if days_in_w:
-            d_obj = datetime.date.fromisoformat(days_in_w[0]["date"])
-            m_name = d_obj.strftime("%b")
-            if m_name != prev_month:
-                if (col_idx - last_col_placed) >= 3:
-                    mx = grid_x0 + col_idx * pitch
-                    p = f_mono.svg_path_tag(
-                        text=m_name,
-                        size=9.5,
-                        x=mx,
-                        y=grid_y0 - 12.0,
-                        fill=pal["dim"],
-                        letter_spacing=0.8,
-                        align="left",
-                        baseline="alphabetic",
-                        extra_attrs='opacity="0.8"',
-                    )
-                    month_labels_svg.append(p)
-                    last_col_placed = col_idx
-                prev_month = m_name
-
-    # Heatmap cells
-    cells_svg: List[str] = []
-    for col_idx, w_data in enumerate(weeks[:52]):
-        days_in_w = w_data.get("contributionDays", [])
-        cx = grid_x0 + col_idx * pitch
-        for row_idx, d_info in enumerate(days_in_w[:7]):
-            cy = grid_y0 + row_idx * pitch
-            lvl = int(d_info.get("level", 0))
-            lvl = max(0, min(4, lvl))
-            c_cfg = level_colors[lvl]
-            cells_svg.append(
-                f'<rect x="{cx}" y="{cy}" width="{cell_size}" height="{cell_size}" rx="3" ry="3" '
-                f'fill="{c_cfg["fill"]}" stroke="{c_cfg["stroke"]}" stroke-width="0.6" />'
+def terrain(w, h, y0, rows=14, cols=48, amp=32, color=OLIVE_ACCENT, opacity=0.45):
+    """Procedural wireframe terrain contours."""
+    out = []
+    for r in range(rows):
+        z = 1 + r * 0.55
+        pts = []
+        for c in range(cols + 1):
+            u = c / cols * 2 - 1
+            x3 = u * 9
+            hgt = (
+                math.sin(x3 * 0.9 + r * 0.45) * 0.6
+                + math.sin(x3 * 0.37 - r * 0.8) * 0.8
+                + math.cos(x3 * 1.7 + r * 0.3) * 0.25
             )
+            px = w / 2 + (u * w * 1.1) / (z * 0.35 + 0.65)
+            py = y0 + (h - y0) * (1 - 1 / z) * 1.25 - hgt * math.exp(-((u * 1.4) ** 2)) * amp / z
+            pts.append(f"{px:.1f},{py:.1f}")
+        out.append(
+            f'<polyline points="{" ".join(pts)}" fill="none" stroke="{color}" '
+            f'stroke-width="{1.5 / (1 + r * 0.08):.2f}" opacity="{opacity * (1 - r / rows * 0.75):.2f}"/>'
+        )
+    return f'<g class="drift">{"".join(out)}</g>'
 
-    # Bottom footer: Status on left, Legend on right
-    footer_status = f_mono.svg_path_tag(
-        text="CONTINUOUS INTEGRATION PIPELINE // DETERMINISTIC WAL COMMIT LOG",
-        size=9.5,
-        x=74.0,
-        y=230.0,
-        fill=pal["dim"],
-        letter_spacing=1.0,
-        baseline="middle",
-        extra_attrs='opacity="0.65"',
+
+# ---------------------------------------------------------------- logos
+
+
+with open(os.path.join(SRC, "icons", "icons.json")) as f:
+    LOGOS = json.load(f)
+
+
+def _luma(color):
+    r, g, b = (int(color[i : i + 2], 16) / 255 for i in (1, 3, 5))
+    lin = [c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4 for c in (r, g, b)]
+    return 0.2126 * lin[0] + 0.7152 * lin[1] + 0.0722 * lin[2]
+
+
+def _readable(color, t):
+    a, b = sorted((_luma(color), _luma(t["cell"])))
+    return color if (b + 0.05) / (a + 0.05) >= 2.2 else t["fg"]
+
+
+def logo(x, y, size, name, t, fallback=None):
+    icon = LOGOS.get(name)
+    k = size / 24
+    if icon is None:
+        return f'<circle cx="{x + size / 2}" cy="{y + size / 2}" r="{size / 3}" fill="{fallback or t["dim"]}"/>'
+    if icon.get("kind") == "brand":
+        return (
+            f'<path transform="translate({x} {y}) scale({k:.3f})" fill="{_readable(icon["hex"], t)}" '
+            f'd="{icon["path"]}"/>'
+        )
+    return (
+        f'<g transform="translate({x} {y}) scale({k:.3f})" fill="none" stroke="{t["fg"]}" stroke-width="2" '
+        f'stroke-linecap="round" stroke-linejoin="round">{icon.get("inner", "")}</g>'
     )
 
-    # Legend elements: "Less" [0][1][2][3][4] "More"
-    legend_svg: List[str] = []
-    leg_x = 1060.0
-    leg_y = 224.0
-    legend_svg.append(
-        f_mono.svg_path_tag(
-            text="Less",
-            size=9.5,
-            x=leg_x - 8.0,
-            y=leg_y + 6.0,
-            fill=pal["dim"],
-            letter_spacing=0.5,
-            align="right",
-            baseline="middle",
+
+# ---------------------------------------------------------------- hero bento
+
+
+def bento(mode, data):
+    t = THEMES[mode]
+    current, longest = streaks(data["days"])
+    css = (
+        FACE_CSS
+        + ".drift{animation:drift 9s ease-in-out infinite alternate}"
+        "@keyframes drift{from{transform:translateX(-30px)}to{transform:translateX(30px)}}"
+        ".rot{opacity:0;animation:rot 12s infinite}"
+        "@keyframes rot{0%{opacity:0;transform:translateY(14px)}3%,22%{opacity:1;transform:none}25%,100%{opacity:0;transform:translateY(-14px)}}"
+        ".pop{opacity:0;animation:pop .6s ease-out forwards;transform-box:fill-box;transform-origin:left center}"
+        "@keyframes pop{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}"
+        ".grow{transform:scaleX(0);transform-box:fill-box;transform-origin:left;animation:grow 1.2s cubic-bezier(.2,.8,.2,1) .3s forwards}"
+        "@keyframes grow{to{transform:scaleX(1)}}"
+        ".shine{animation:shine 3.5s ease-in-out infinite}"
+        "@keyframes shine{0%,60%{transform:translateX(-300px)}100%{transform:translateX(420px)}}"
+        ".marq{animation:marq 26s linear infinite}@keyframes marq{to{transform:translateX(-50%)}}"
+    )
+    b = []
+
+    # Card 1: Hero Identity (Hero card with Mascot + Procedural Terrain + Animated rotating status)
+    b.append(cell(0, 0, 820, 400, t, t["hero_bg"]))
+    b.append('<clipPath id="hero"><rect width="820" height="400" rx="22"/></clipPath>')
+    b.append(f'<g clip-path="url(#hero)">{terrain(820, 400, 220, color=t["accent"])}</g>')
+    b.append(face(36, 32, 132))
+    b.append(text(40, 248, "HEY, I'M SHLOK", 96, "Disp", t["fg"]))
+    b.append(text(42, 298, "Systems Architect & Distributed Runtimes Engineer.", 22, "Mono", t["dim"]))
+    b.append(text(42, 352, "I build", 22, "MonoB", t["accent_bright"]))
+    for i, s in enumerate(STATUS_LINES):
+        b.append(f'<g class="rot" style="animation-delay:{i * 3}s">{text(152, 352, s, 22, "MonoB", t["fg"])}</g>')
+
+    # Card 2: Principles / Philosophy Card
+    b.append(cell(840, 0, 440, 190, t))
+    b.append(label(870, 42, "SYSTEM INVARIANT", t))
+    b.append(text(868, 96, "SIMPLICITY IS PREREQUISITE", 33, "Disp", t["fg"]))
+    b.append(text(868, 138, "FOR RELIABILITY.", 33, "Disp", t["accent_bright"]))
+    b.append(text(870, 172, "Edsger W. Dijkstra", 16, "Mono", t["dim"]))
+
+    # Card 3: Special Achievement / Focus Card
+    b.append(cell(840, 210, 440, 190, t))
+    b.append('<clipPath id="hk"><rect x="840" y="210" width="440" height="190" rx="22"/></clipPath>')
+    b.append(
+        f'<g clip-path="url(#hk)"><rect class="shine" x="840" y="210" width="100" height="190" fill="{t["accent_bright"]}" opacity=".15" transform="skewX(-20)"/></g>'
+    )
+    b.append(label(870, 252, "CORE DISCIPLINE", t))
+    b.append(text(866, 336, "LOCAL AI", 80, "Disp", t["accent_bright"]))
+    b.append(text(1130, 336, "runtimes", 22, "Mono", t["dim"]))
+
+    # Row 2: Live Numbers | Languages in repos | Focus area
+    y = 420
+    b.append(cell(0, y, 410, 300, t))
+    b.append(label(30, y + 42, "On GitHub", t))
+    stats = [
+        (data["total"], "contributions this year"),
+        (current, "day streak now"),
+        (longest, "day best streak"),
+        (data["repos"], "public repositories"),
+    ]
+    for i, (n, what) in enumerate(stats):
+        yy = y + 100 + i * 56
+        b.append(
+            f'<g class="pop" style="animation-delay:{.15 * i:.2f}s">'
+            + text(30, yy, f"{n:,}", 44, "Disp", t["accent_bright"] if i == 0 else t["fg"])
+            + text(150, yy - 6, what, 18, "Mono", t["dim"])
+            + "</g>"
+        )
+
+    # Real Language Breakdown from user repositories
+    b.append(cell(430, y, 430, 300, t))
+    b.append(label(460, y + 42, "Languages in my repos", t))
+    langs = data["languages"][:6]
+    total = sum(x[1] for x in langs) or 1
+    bx, bar = 460, ""
+    for name, size, color in langs:
+        wdt = 370 * size / total
+        bar += f'<rect x="{bx:.1f}" y="{y + 66}" width="{max(wdt - 3, 1):.1f}" height="16" rx="3" fill="{color}"/>'
+        bx += wdt
+    b.append(f'<g class="grow">{bar}</g>')
+    for i, (name, size, color) in enumerate(langs):
+        lx, ly = 460 + (i % 2) * 190, y + 106 + (i // 2) * 60
+        b.append(
+            f'<g class="pop" style="animation-delay:{.6 + .1 * i:.2f}s">'
+            + logo(lx + 4, ly + 4, 34, name, t, color)
+            + text(lx + 54, ly + 19, name, 18, "Mono", t["fg"])
+            + text(lx + 54, ly + 40, f"{100 * size / total:.0f}%", 14, "Mono", t["dim"])
+            + "</g>"
+        )
+
+    # Architectural Spec Card
+    b.append(cell(880, y, 400, 300, t))
+    b.append(label(910, y + 42, "SYSTEM ARCHITECTURE", t))
+    b.append(text(908, y + 110, "AUTONOMOUS", 48, "Disp", t["fg"]))
+    b.append(text(908, y + 154, "AGENT RUNTIMES", 48, "Disp", t["accent_bright"]))
+    b.append(text(910, y + 204, "Sub-16ms telemetry, SQLite WAL", 16, "Mono", t["dim"]))
+    b.append(text(910, y + 232, "storage & high-resilience kernels", 16, "Mono", t["dim"]))
+
+    # Row 3: Tech Stack Chips
+    y = 740
+    b.append(cell(0, y, W, 170, t))
+    b.append(label(30, y + 42, "What I build with", t))
+    x, yy = 30, y + 70
+    for i, s in enumerate(STACK):
+        wdt = 58 + len(s) * 11.2
+        if x + wdt > W - 30:
+            x, yy = 30, yy + 52
+        b.append(
+            f'<g class="pop" style="animation-delay:{.08 * i:.2f}s">'
+            f'<rect x="{x}" y="{yy}" width="{wdt}" height="40" rx="20" fill="none" stroke="{t["fg"]}" stroke-opacity=".3" stroke-width="1.5"/>'
+            + logo(x + 16, yy + 11, 18, s, t)
+            + text(x + 42, yy + 26, s, 17, "Mono", t["fg"])
+            + "</g>"
+        )
+        x += wdt + 10
+
+    # Row 4: Interests Marquee + Portfolio / Contact Banner
+    y = 930
+    b.append(cell(0, y, 820, 150, t))
+    b.append(label(30, y + 42, "Off the clock & deep research", t))
+    b.append(f'<clipPath id="mq"><rect x="1" y="{y + 60}" width="818" height="60"/></clipPath>')
+    line = "  ·  ".join(INTERESTS) + "  ·  "
+    b.append(f'<g clip-path="url(#mq)"><g class="marq">' + text(30, y + 102, line + line, 24, "Mono", t["fg"]) + "</g></g>")
+
+    b.append(cell(840, y, 440, 150, t))
+    b.append(label(870, y + 42, "GitHub Profile", t))
+    b.append(text(868, y + 104, "github.com/sshloktiwarii ↗", 26, "WM", t["accent_bright"]))
+
+    return svg(1096, "".join(b), css, title="Shlok Tiwari, Systems Architect")
+
+
+# ---------------------------------------------------------------- activity heatmap
+
+
+def activity(mode, data):
+    t = THEMES[mode]
+    levels = LEVELS if mode == "dark" else LEVELS_LIGHT
+    days = data["days"][-371:]
+    size, gap, x0, y0 = 18, 4, 30, 96
+    first = dt.date.fromisoformat(days[0][0])
+    offset = (first.weekday() + 1) % 7
+    cells = []
+    for i, (date, count, level) in enumerate(days):
+        k = i + offset
+        col, row = divmod(k, 7)
+        x, y = x0 + col * (size + gap), y0 + row * (size + gap)
+        fill = levels[level] or t["empty"]
+        delay = (col + row) * 0.02
+        cells.append(
+            f'<rect class="d" style="animation-delay:{delay:.2f}s" x="{x}" y="{y}" width="{size}" height="{size}" rx="4" fill="{fill}">'
+            f"<title>{count} on {date}</title></rect>"
+        )
+    css = (
+        ".d{opacity:0;animation:in .4s ease-out forwards;transform-box:fill-box;transform-origin:center}"
+        "@keyframes in{from{opacity:0;transform:scale(.3)}to{opacity:1;transform:none}}"
+    )
+    width = x0 * 2 + 53 * (size + gap)
+    legend = "".join(
+        f'<rect x="{width - 30 - (5 - i) * 24}" y="34" width="18" height="18" rx="4" fill="{levels[i] or t["empty"]}"/>'
+        for i in range(5)
+    )
+    body = (
+        cell(0, 0, W, 280, t)
+        + label(30, 48, f"{data['total']:,} contributions in the last year", t)
+        + text(width - 160, 48, "less", 13, "Mono", t["dim"], "end")
+        + legend
+        + text(width - 22, 48, "more", 13, "Mono", t["dim"])
+        + f'<g transform="translate({(W - width) / 2:.0f} 0)">{"".join(cells)}</g>'
+        + text(
+            30,
+            268,
+            "Sample data until the first refresh" if data["updated"] == "sample" else f"Updated {data['updated']}",
+            12,
+            "Mono",
+            t["dim"],
         )
     )
-    for lvl in range(5):
-        c_cfg = level_colors[lvl]
-        lx = leg_x + lvl * 16.0
-        legend_svg.append(
-            f'<rect x="{lx}" y="{leg_y}" width="12" height="12" rx="2.5" '
-            f'fill="{c_cfg["fill"]}" stroke="{c_cfg["stroke"]}" stroke-width="0.5" />'
-        )
-    legend_svg.append(
-        f_mono.svg_path_tag(
-            text="More",
-            size=9.5,
-            x=leg_x + 5 * 16.0 + 8.0,
-            y=leg_y + 6.0,
-            fill=pal["dim"],
-            letter_spacing=0.5,
-            align="left",
-            baseline="middle",
-        )
+    return svg(296, body, css, title=f"{data['total']} contributions in the last year")
+
+
+# ---------------------------------------------------------------- project icons & cards
+
+ICONS = {
+    # Custom 64x64 animated kinetic vector icons tailored for Shlok's systems
+    "semcache": (
+        '<rect x="12" y="14" width="40" height="36" rx="8" stroke-width="3"/>'
+        '<path d="M20 26h24M20 38h14" stroke-width="3"/>'
+        '<g class="bolt"><path d="M42 28l-8 10h6l-2 10 10-12h-6z" fill="currentColor"/></g>',
+        ".bolt{animation:pulse 1.8s ease-in-out infinite;transform-origin:38px 36px}@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.25)}}",
+    ),
+    "agentvault": (
+        '<rect x="14" y="16" width="36" height="36" rx="6" stroke-width="3"/>'
+        '<circle cx="32" cy="34" r="8" stroke-width="3"/>'
+        '<g class="dial"><line x1="32" y1="34" x2="32" y2="28" stroke-width="3"/></g>',
+        ".dial{animation:spin 4s linear infinite;transform-origin:32px 34px}@keyframes spin{to{transform:rotate(360deg)}}",
+    ),
+    "strata": (
+        '<path d="M10 20l22-10 22 10-22 10z" stroke-width="3"/>'
+        '<path class="l2" d="M10 32l22 10 22-10" stroke-width="3"/>'
+        '<path class="l3" d="M10 44l22 10 22-10" stroke-width="3"/>',
+        ".l2{animation:float 2.5s ease-in-out infinite alternate}@keyframes float{to{transform:translateY(-3px)}}"
+        ".l3{animation:float 2.5s ease-in-out .5s infinite alternate}",
+    ),
+    "cortex": (
+        '<circle cx="32" cy="32" r="16" stroke-width="3"/>'
+        '<circle cx="32" cy="32" r="6" fill="currentColor"/>'
+        '<g class="orbit"><circle cx="12" cy="32" r="4" fill="currentColor"/><circle cx="52" cy="32" r="4" fill="currentColor"/></g>',
+        ".orbit{animation:orbit 3s ease-in-out infinite alternate;transform-origin:32px 32px}@keyframes orbit{to{transform:rotate(180deg)}}",
+    ),
+}
+
+
+def card(mode, p, data):
+    t = THEMES[mode]
+    draw, motion = ICONS[p["slug"]]
+    stars = data["stars"].get(p["repo"]) if p["repo"] else None
+    where = "repo ↗" if p["repo"] else "live ↗"
+    meta = f"★ {stars}  ·  {where}" if stars else where
+    body = (
+        cell(1, 1, 618, 218, t)
+        + f'<rect x="28" y="28" width="104" height="104" rx="24" fill="{t["accent_bright"]}"/>'
+        + f'<g transform="translate(40 40) scale(1.25)" fill="none" stroke="{t["bg"]}" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" color="{t["bg"]}">{draw}</g>'
+        + text(156, 62, p["tag"].upper(), 13, "Mono", t["accent_bright"], spacing=".14em")
+        + text(154, 118, p["name"].upper(), 56, "Disp", t["fg"])
+        + text(30, 172, p["line"], 17, "Mono", t["fg"])
+        + text(30, 200, p["stack"], 14, "Mono", t["dim"])
+        + text(590, 200, meta, 14, "Mono", t["dim"], "end")
     )
-
-    svg = f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" width="{w}" height="{h}">
-  <defs>
-    <style>
-      @media (prefers-reduced-motion: reduce) {{
-        animate, animateTransform {{
-          display: none !important;
-        }}
-      }}
-    </style>
-    <linearGradient id="act_bg_dark" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#0B111E" />
-      <stop offset="100%" stop-color="#060912" />
-    </linearGradient>
-    <linearGradient id="act_bg_light" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#FFFFFF" />
-      <stop offset="100%" stop-color="#F4F6F9" />
-    </linearGradient>
-    <linearGradient id="act_border_dark" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#2A374A" />
-      <stop offset="50%" stop-color="#8A98A8" stop-opacity="0.6" />
-      <stop offset="100%" stop-color="#2A374A" />
-    </linearGradient>
-    <linearGradient id="act_border_light" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#D3D8E2" />
-      <stop offset="50%" stop-color="#8A98A8" stop-opacity="0.6" />
-      <stop offset="100%" stop-color="#D3D8E2" />
-    </linearGradient>
-  </defs>
-
-  <!-- Outer Card Frame -->
-  <rect x="0.5" y="0.5" width="1279" height="249" rx="14" fill="{card_bg}" stroke="{card_border}" stroke-width="1.5" />
-
-  <!-- Header & Radar Beacon -->
-  <circle cx="56" cy="36" r="3.5" fill="{pal['olive']}" />
-  <circle cx="56" cy="36" r="3.5" fill="none" stroke="{pal['olive_glow']}" stroke-width="1.2">
-    <animate attributeName="r" values="3.5;8.5;10.5" dur="2.4s" repeatCount="indefinite" />
-    <animate attributeName="opacity" values="0.85;0.2;0.0" dur="2.4s" repeatCount="indefinite" />
-  </circle>
-  {header_path}
-
-  <!-- Stats Pills -->
-  {stat1_rect}
-  {stat1_path}
-  {stat2_rect}
-  {stat2_path}
-  {stat3_rect}
-  {stat3_path}
-
-  <!-- Day Labels -->
-  {' '.join(day_labels_svg)}
-
-  <!-- Month Labels -->
-  {' '.join(month_labels_svg)}
-
-  <!-- Grid Cells -->
-  {' '.join(cells_svg)}
-
-  <!-- Footer Telemetry & Legend -->
-  <circle cx="62" cy="230" r="3" fill="{pal['olive']}" />
-  {footer_status}
-  {' '.join(legend_svg)}
-</svg>
-"""
-    return svg
+    return svg(234, body, motion, w=620, title=f'{p["name"]}: {p["line"]}')
 
 
-# ---------------------------------------------------------------------------
-# SVG Generator 3: Flagship Project Cards (assets/project-*-{dark,light}.svg)
-# ---------------------------------------------------------------------------
-
-PROJECTS = [
-    {
-        "id": "semcache",
-        "title": "SemCache",
-        "tag": "Performance Engine",
-        "desc": "Remembers answers from AI so you get instant responses and never pay for the same query twice.",
-        "stack": ["Python", "Vector Cosine", "In-Memory Cache"],
-    },
-    {
-        "id": "agentvault",
-        "title": "AgentVault",
-        "tag": "Security & Audit",
-        "desc": "A black-box flight recorder that tracks every move your AI agents make in real time.",
-        "stack": ["Rust", "SQLite WAL", "Telemetry"],
-    },
-    {
-        "id": "strata",
-        "title": "Strata",
-        "tag": "Orchestration",
-        "desc": "A control center that runs and organizes large fleets of autonomous AI workers together.",
-        "stack": ["TypeScript", "Multi-Agent Runtime", "Distributed"],
-    },
-    {
-        "id": "cortex",
-        "title": "Cortex",
-        "tag": "Cognitive Core",
-        "desc": "The central brain that coordinates multiple specialized agents to solve big problems.",
-        "stack": ["Local LLMs", "Task Routing", "Memory Synthesis"],
-    },
-]
-
-
-def generate_project_card_svg(theme: str, proj: Dict[str, Any], fonts: Dict[str, Face]) -> str:
-    """Generate high-end 625x210 Project Card with liquid chrome specular finishes."""
-    pal = get_palette(theme)
-    w, h = 625.0, 210.0
-
-    f_mono = fonts["mono"]
-    f_monob = fonts["monob"]
-    f_audio = fonts["audio"]
-
-    proj_id = proj["id"]
-    title = proj["title"]
-    tag = proj["tag"]
-    desc = proj["desc"]
-    stack_items = proj["stack"]
-
-    # 1. Title Path
-    title_path = f_audio.svg_path_tag(
-        text=title,
-        size=24.0,
-        x=34.0,
-        y=44.0,
-        fill=f"url(#proj_title_{proj_id}_{theme})",
-        letter_spacing=2.2,
-        baseline="middle",
+def footer(mode):
+    t = THEMES[mode]
+    body = (
+        cell(0, 0, W, 120, t, t["cell"])
+        + face(40, 14, 92)
+        + text(W / 2, 74, "SHLOK TIWARI", 34, "WM", t["accent_bright"], "middle", spacing=".12em")
+        + text(W - 40, 72, "thanks for stopping by", 16, "Mono", t["dim"], "end")
     )
-    title_w = f_audio.measure_text(title, size=24.0, letter_spacing=2.2).width
-
-    # 2. Arrow icon (↗) next to title
-    arrow_path = f_monob.svg_path_tag(
-        text="↗",
-        size=14.0,
-        x=34.0 + title_w + 10.0,
-        y=44.0,
-        fill=pal["olive_glow"] if theme == "dark" else pal["olive"],
-        letter_spacing=0.0,
-        baseline="middle",
-    )
-
-    # 3. Tag Pill on top right
-    tag_w = f_monob.measure_text(tag, size=10.0, letter_spacing=1.0).width + 22.0
-    tag_x = round(w - 34.0 - tag_w, 1)
-    tag_rect = (
-        f'<rect x="{tag_x}" y="32" width="{tag_w}" height="24" rx="12" '
-        f'fill="{pal["badge_bg"]}" stroke="{pal["edge"]}" stroke-width="1.0" />'
-    )
-    tag_path = f_monob.svg_path_tag(
-        text=tag,
-        size=10.0,
-        x=tag_x + tag_w / 2.0,
-        y=44.0,
-        fill=pal["olive_glow"] if theme == "dark" else pal["olive"],
-        letter_spacing=1.0,
-        align="center",
-        baseline="middle",
-    )
-
-    # 4. Description Lines
-    wrapped_lines = wrap_text(f_mono, desc, max_w=550.0, size=12.2, letter_spacing=0.3)
-    desc_svg_parts = []
-    line_y0 = 92.0
-    for idx, line in enumerate(wrapped_lines[:2]):
-        ly = line_y0 + idx * 22.0
-        p = f_mono.svg_path_tag(
-            text=line,
-            size=12.2,
-            x=34.0,
-            y=ly,
-            fill=pal["fg"],
-            letter_spacing=0.3,
-            baseline="middle",
-        )
-        desc_svg_parts.append(p)
-
-    # 5. Bottom Stack Line with Olive Bullets
-    stack_svg_parts: List[str] = []
-    stack_cur_x = 34.0
-    stack_y = 176.0
-
-    for idx, item in enumerate(stack_items):
-        item_w = f_monob.measure_text(item, size=10.5, letter_spacing=0.6).width
-        p = f_monob.svg_path_tag(
-            text=item,
-            size=10.5,
-            x=stack_cur_x,
-            y=stack_y,
-            fill=pal["badge_fg"],
-            letter_spacing=0.6,
-            baseline="middle",
-        )
-        stack_svg_parts.append(p)
-        stack_cur_x += item_w
-
-        if idx < len(stack_items) - 1:
-            stack_cur_x += 8.0
-            # Olive separator bullet
-            bullet_p = f_monob.svg_path_tag(
-                text="·",
-                size=12.0,
-                x=stack_cur_x,
-                y=stack_y,
-                fill=pal["olive_glow"] if theme == "dark" else pal["olive"],
-                letter_spacing=0.0,
-                baseline="middle",
-            )
-            stack_svg_parts.append(bullet_p)
-            bullet_w = f_monob.measure_text("·", size=12.0).width
-            stack_cur_x += bullet_w + 8.0
-
-    # 6. Status on bottom right
-    status_x = w - 34.0
-    status_path = f_monob.svg_path_tag(
-        text="ONLINE // DETERMINISTIC",
-        size=9.5,
-        x=status_x,
-        y=stack_y,
-        fill=pal["dim"],
-        letter_spacing=0.8,
-        align="right",
-        baseline="middle",
-        extra_attrs='opacity="0.8"',
-    )
-
-    if theme == "dark":
-        card_bg = f"url(#card_bg_{proj_id}_dark)"
-        card_border = f"url(#card_border_{proj_id}_dark)"
-    else:
-        card_bg = f"url(#card_bg_{proj_id}_light)"
-        card_border = f"url(#card_border_{proj_id}_light)"
-
-    svg = f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" width="{w}" height="{h}">
-  <defs>
-    <!-- Background Gradient -->
-    <linearGradient id="card_bg_{proj_id}_dark" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#0E1626" />
-      <stop offset="60%" stop-color="#0A101C" />
-      <stop offset="100%" stop-color="#060A12" />
-    </linearGradient>
-    <linearGradient id="card_bg_{proj_id}_light" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#FFFFFF" />
-      <stop offset="60%" stop-color="#F8FAFC" />
-      <stop offset="100%" stop-color="#EEF2F6" />
-    </linearGradient>
-
-    <!-- Milled Edge Gradient -->
-    <linearGradient id="card_border_{proj_id}_dark" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#2A374A" />
-      <stop offset="45%" stop-color="#8A98A8" stop-opacity="0.7" />
-      <stop offset="100%" stop-color="#2A374A" />
-    </linearGradient>
-    <linearGradient id="card_border_{proj_id}_light" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#D3D8E2" />
-      <stop offset="45%" stop-color="#8A98A8" stop-opacity="0.7" />
-      <stop offset="100%" stop-color="#D3D8E2" />
-    </linearGradient>
-
-    <!-- Title Liquid Chrome Specular Gradient -->
-    <linearGradient id="proj_title_{proj_id}_dark" x1="0%" y1="0%" x2="100%" y2="80%">
-      <stop offset="0%" stop-color="#7E8D9F" />
-      <stop offset="35%" stop-color="#FFFFFF" />
-      <stop offset="65%" stop-color="#D2D9E5" />
-      <stop offset="100%" stop-color="#4A5C74" />
-    </linearGradient>
-    <linearGradient id="proj_title_{proj_id}_light" x1="0%" y1="0%" x2="100%" y2="80%">
-      <stop offset="0%" stop-color="#0C1322" />
-      <stop offset="35%" stop-color="#3C4F6B" />
-      <stop offset="65%" stop-color="#1A283B" />
-      <stop offset="100%" stop-color="#080D17" />
-    </linearGradient>
-
-    <!-- Hairline Specular Divider -->
-    <linearGradient id="proj_hairline_{proj_id}_{theme}" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="{pal['edge']}" stop-opacity="0.0" />
-      <stop offset="15%" stop-color="{pal['edge']}" stop-opacity="0.8" />
-      <stop offset="50%" stop-color="#FFFFFF" stop-opacity="0.5" />
-      <stop offset="85%" stop-color="{pal['edge']}" stop-opacity="0.8" />
-      <stop offset="100%" stop-color="{pal['edge']}" stop-opacity="0.0" />
-    </linearGradient>
-  </defs>
-
-  <!-- Outer Card Frame -->
-  <rect x="0.5" y="0.5" width="624" height="209" rx="12" fill="{card_bg}" stroke="{card_border}" stroke-width="1.5" />
-
-  <!-- Corner Precision Crosshairs -->
-  <g stroke="{pal['dim']}" stroke-width="1" opacity="0.35">
-    <line x1="16" y1="18" x2="22" y2="18" />
-    <line x1="19" y1="15" x2="19" y2="21" />
-    <line x1="603" y1="18" x2="609" y2="18" />
-    <line x1="606" y1="15" x2="606" y2="21" />
-    <line x1="16" y1="192" x2="22" y2="192" />
-    <line x1="19" y1="189" x2="19" y2="195" />
-    <line x1="603" y1="192" x2="609" y2="192" />
-    <line x1="606" y1="189" x2="606" y2="195" />
-  </g>
-
-  <!-- Top Title & Tag -->
-  {title_path}
-  {arrow_path}
-  {tag_rect}
-  {tag_path}
-
-  <!-- Upper Hairline Divider -->
-  <line x1="34" y1="68" x2="591" y2="68" stroke="url(#proj_hairline_{proj_id}_{theme})" stroke-width="1.0" />
-
-  <!-- Description Lines -->
-  {' '.join(desc_svg_parts)}
-
-  <!-- Lower Hairline Divider -->
-  <line x1="34" y1="148" x2="591" y2="148" stroke="url(#proj_hairline_{proj_id}_{theme})" stroke-width="1.0" />
-
-  <!-- Bottom Stack Badges & Status -->
-  {' '.join(stack_svg_parts)}
-  {status_path}
-</svg>
-"""
-    return svg
+    return svg(120, body, FACE_CSS, title="Shlok Tiwari")
 
 
-# ---------------------------------------------------------------------------
-# SVG Generator 4: Bottom Footer Banners (assets/footer-{dark,light}.svg)
-# ---------------------------------------------------------------------------
-
-def generate_footer_svg(theme: str, fonts: Dict[str, Face]) -> str:
-    """Generate 1280x90 Systems Engineering Footer Banner."""
-    pal = get_palette(theme)
-    w, h = 1280.0, 90.0
-
-    f_mono = fonts["mono"]
-    f_monob = fonts["monob"]
-
-    # Left text
-    left_path = f_monob.svg_path_tag(
-        text="SHLOK TIWARI // SYSTEM RUNTIMES & DISTRIBUTED AGENTS",
-        size=11.5,
-        x=72.0,
-        y=46.0,
-        fill=pal["fg"],
-        letter_spacing=1.6,
-        baseline="middle",
-    )
-
-    # Center motto
-    center_path = f_mono.svg_path_tag(
-        text="LOW-LATENCY · ZERO-BLOAT · DETERMINISTIC EXECUTION",
-        size=10.5,
-        x=640.0,
-        y=46.0,
-        fill=pal["dim"],
-        letter_spacing=1.4,
-        align="center",
-        baseline="middle",
-    )
-
-    # Right Status Pill
-    status_text = "STATUS: NOMINAL"
-    pill_w = f_monob.measure_text(status_text, size=10.0, letter_spacing=1.0).width + 36.0
-    pill_x = w - 50.0 - pill_w
-    pill_rect = (
-        f'<rect x="{pill_x}" y="32" width="{pill_w}" height="26" rx="13" '
-        f'fill="{pal["badge_bg"]}" stroke="{pal["edge"]}" stroke-width="1.0" />'
-    )
-    # Olive dot inside pill
-    dot_x = pill_x + 14.0
-    pill_path = f_monob.svg_path_tag(
-        text=status_text,
-        size=10.0,
-        x=pill_x + 28.0,
-        y=46.0,
-        fill=pal["olive_glow"] if theme == "dark" else pal["olive"],
-        letter_spacing=1.0,
-        baseline="middle",
-    )
-
-    if theme == "dark":
-        footer_bg = "url(#footer_bg_dark)"
-        footer_border = "url(#footer_border_dark)"
-    else:
-        footer_bg = "url(#footer_bg_light)"
-        footer_border = "url(#footer_border_light)"
-
-    svg = f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" width="{w}" height="{h}">
-  <defs>
-    <style>
-      @media (prefers-reduced-motion: reduce) {{
-        animate, animateTransform {{
-          display: none !important;
-        }}
-      }}
-    </style>
-    <linearGradient id="footer_bg_dark" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#0B111E" />
-      <stop offset="100%" stop-color="#060912" />
-    </linearGradient>
-    <linearGradient id="footer_bg_light" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#FFFFFF" />
-      <stop offset="100%" stop-color="#F4F6F9" />
-    </linearGradient>
-    <linearGradient id="footer_border_dark" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#2A374A" />
-      <stop offset="50%" stop-color="#8A98A8" stop-opacity="0.6" />
-      <stop offset="100%" stop-color="#2A374A" />
-    </linearGradient>
-    <linearGradient id="footer_border_light" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#D3D8E2" />
-      <stop offset="50%" stop-color="#8A98A8" stop-opacity="0.6" />
-      <stop offset="100%" stop-color="#D3D8E2" />
-    </linearGradient>
-
-    <!-- Top Hairline Specular Highlight -->
-    <linearGradient id="footer_specular_{theme}" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="{pal['edge']}" stop-opacity="0.0" />
-      <stop offset="30%" stop-color="{pal['edge']}" stop-opacity="0.8" />
-      <stop offset="50%" stop-color="#FFFFFF" stop-opacity="0.8" />
-      <stop offset="70%" stop-color="{pal['edge']}" stop-opacity="0.8" />
-      <stop offset="100%" stop-color="{pal['edge']}" stop-opacity="0.0" />
-    </linearGradient>
-  </defs>
-
-  <!-- Outer Frame -->
-  <rect x="0.5" y="0.5" width="1279" height="89" rx="10" fill="{footer_bg}" stroke="{footer_border}" stroke-width="1.5" />
-
-  <!-- Top Specular Highlight Line -->
-  <line x1="80" y1="1.5" x2="1200" y2="1.5" stroke="url(#footer_specular_{theme})" stroke-width="1.2" />
-
-  <!-- Left Pulsing Olive Beacon -->
-  <circle cx="50" cy="46" r="3.5" fill="{pal['olive']}" />
-  <circle cx="50" cy="46" r="3.5" fill="none" stroke="{pal['olive_glow']}" stroke-width="1.2">
-    <animate attributeName="r" values="3.5;8.5;10.5" dur="2.4s" repeatCount="indefinite" />
-    <animate attributeName="opacity" values="0.85;0.2;0.0" dur="2.4s" repeatCount="indefinite" />
-  </circle>
-  {left_path}
-
-  <!-- Center Motto -->
-  {center_path}
-
-  <!-- Right Status Pill -->
-  {pill_rect}
-  <circle cx="{dot_x}" cy="46" r="3" fill="{pal['olive_glow'] if theme == 'dark' else pal['olive']}" />
-  {pill_path}
-</svg>
-"""
-    return svg
-
-
-# ---------------------------------------------------------------------------
-# Main Build Driver
-# ---------------------------------------------------------------------------
-
-def build_all() -> None:
-    """Build all SVG assets and save to assets/."""
-    print("=" * 68)
-    print("  ANTIGRAVITY ASSET SYNTHESIS: LIQUID CHROME & MILLED SILVER SUITE")
-    print("=" * 68)
-
-    # 1. Load fonts
-    print("[1/5] Loading vector typography engines...")
-    fonts = load_fonts()
-    print("      Loaded Mono, MonoB, Disp, and Audiowide.")
-
-    # 2. Fetch / load GitHub telemetry data
-    print("[2/5] Initializing GitHub contribution data cache...")
-    github_data = fetch_or_load_github_data()
-
-    # 3. Generate Hero Bento Cards
-    print("[3/5] Generating Hero Bento Cards (assets/bento-{dark,light}.svg)...")
-    for theme in ("dark", "light"):
-        bento_svg = generate_bento_svg(theme, github_data, fonts)
-        out_path = os.path.join(ASSETS_DIR, f"bento-{theme}.svg")
-        with open(out_path, "w", encoding="utf-8") as f:
-            f.write(bento_svg)
-        size_kb = os.path.getsize(out_path) / 1024.0
-        print(f"      -> {out_path} ({size_kb:.1f} KB)")
-
-    # 4. Generate Contribution Telemetry
-    print("[4/5] Generating Contribution Telemetry (assets/activity-{dark,light}.svg)...")
-    for theme in ("dark", "light"):
-        act_svg = generate_activity_svg(theme, github_data, fonts)
-        out_path = os.path.join(ASSETS_DIR, f"activity-{theme}.svg")
-        with open(out_path, "w", encoding="utf-8") as f:
-            f.write(act_svg)
-        size_kb = os.path.getsize(out_path) / 1024.0
-        print(f"      -> {out_path} ({size_kb:.1f} KB)")
-
-    # 5. Generate Project Cards & Footers
-    print("[5/5] Generating Project Cards & Footers...")
-    for proj in PROJECTS:
-        pid = proj["id"]
-        for theme in ("dark", "light"):
-            proj_svg = generate_project_card_svg(theme, proj, fonts)
-            out_path = os.path.join(ASSETS_DIR, f"project-{pid}-{theme}.svg")
-            with open(out_path, "w", encoding="utf-8") as f:
-                f.write(proj_svg)
-            size_kb = os.path.getsize(out_path) / 1024.0
-            print(f"      -> {out_path} ({size_kb:.1f} KB)")
-
-    for theme in ("dark", "light"):
-        footer_svg = generate_footer_svg(theme, fonts)
-        out_path = os.path.join(ASSETS_DIR, f"footer-{theme}.svg")
-        with open(out_path, "w", encoding="utf-8") as f:
-            f.write(footer_svg)
-        size_kb = os.path.getsize(out_path) / 1024.0
-        print(f"      -> {out_path} ({size_kb:.1f} KB)")
-
-    print("=" * 68)
-    print("  ALL ASSETS GENERATED & VERIFIED CLEANLY!")
-    print("=" * 68)
+def main():
+    data = load()
+    os.makedirs(ASSETS, exist_ok=True)
+    out = {}
+    for mode in THEMES:
+        out[f"bento-{mode}.svg"] = bento(mode, data)
+        out[f"activity-{mode}.svg"] = activity(mode, data)
+        out[f"footer-{mode}.svg"] = footer(mode)
+        for p in PROJECTS:
+            out[f"project-{p['slug']}-{mode}.svg"] = card(mode, p, data)
+    for name, s in out.items():
+        with open(os.path.join(ASSETS, name), "w") as f:
+            f.write(s)
+    print(f"wrote {len(out)} images, data from {data['updated']}")
 
 
 if __name__ == "__main__":
-    build_all()
+    main()
