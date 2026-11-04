@@ -3,14 +3,15 @@ High-End Vector SVG Profile Generator for Shlok Tiwari (sshloktiwarii)
 Inspired by harsh4k/harsh4k:
 - 100% Vector outline typography via fontTools Face (Audiowide, BigShouldersDisplay, IBMPlexMono)
 - Live GitHub GraphQL integration (contributions, real languages, stars)
-- High-contrast Cyber-Telemetry Bento Grid:
-  * Hero banner with bobbing vector mascot + rotating status lines + animated wave mesh
-  * Quote card with animated gradient sweep
-  * Live stats with Pop animations
-  * Real Language Breakdown with grow animations & brand vector logos
-  * Tech stack chips with SVG brand icons
+- High-contrast, High-Impact Cyber-Telemetry Bento Grid:
+  * Enlarged blocks & typography (bold, crisp, clean, no generic pill borders)
+  * Animated bobbing vector mascot + rotating status lines + animated wave mesh
+  * Philosophy card with animated gradient sweep
+  * Live GitHub telemetry with animated Pop-in counters
+  * Language graph with smooth SVG animated grow bars & brand logos
+  * Tech stack grid with official SVG brand icons
   * Off the clock marquee animation
-  * 4 Animated Flagship Project Cards with unique kinetic SVG icons
+  * 6 Animated Flagship Project Cards with unique kinetic SVG icons
 """
 
 import datetime as dt
@@ -69,7 +70,7 @@ THEMES = {
 LEVELS = ["", "#25331C", "#435928", "#688836", OLIVE_GLOW]
 LEVELS_LIGHT = ["", "#D9E8BA", "#B2D17E", "#88AF44", "#5B7C22"]
 
-# Flagship projects with plain English descriptions
+# 6 Flagship projects with plain English descriptions
 PROJECTS = [
     dict(
         slug="semcache",
@@ -88,6 +89,24 @@ PROJECTS = [
         line="A black-box flight recorder that tracks every move your AI agents make in real time.",
         tag="Security & Audit",
         stack="Rust · SQLite WAL · Telemetry",
+    ),
+    dict(
+        slug="sentinel",
+        name="Sentinel-AI",
+        repo="Sentinel",
+        url="https://github.com/sshloktiwarii/Sentinel",
+        line="Guards system memory against crashes during heavy local AI model inference.",
+        tag="Memory Telemetry",
+        stack="C++ · Mach Kernel · Apple Silicon · eBPF",
+    ),
+    dict(
+        slug="aegis",
+        name="Aegis Sandbox",
+        repo="Aegis",
+        url="https://github.com/sshloktiwarii/Aegis",
+        line="Stops autonomous AI agents from running destructive terminal commands or leaking keys.",
+        tag="Agent Security",
+        stack="Rust · Landlock · Apple Seatbelt · AST Sanitizer",
     ),
     dict(
         slug="strata",
@@ -291,14 +310,14 @@ def cell(x, y, w, h, t, fill=None):
 
 
 def label(x, y, s, t):
-    return text(x, y, s.upper(), 13, fill=t["dim"], spacing=".16em")
+    return text(x, y, s.upper(), 14, fill=t["dim"], spacing=".16em")
 
 
 # ---------------------------------------------------------------- mascot & terrain
 
 
 def face(x, y, size):
-    """Interactive winking mascot face, matching harsh4k's beloved animation."""
+    """Interactive winking mascot face with idle breathing & wink keyframes."""
     def inner(name, suffix):
         with open(os.path.join(SRC, "faces", name)) as f:
             s = f.read()
@@ -407,7 +426,7 @@ def bento(mode, data):
     b.append('<clipPath id="hero"><rect width="820" height="400" rx="22"/></clipPath>')
     b.append(f'<g clip-path="url(#hero)">{terrain(820, 400, 220, color=t["accent"])}</g>')
     b.append(face(36, 32, 132))
-    b.append(text(40, 248, "HEY, I'M SHLOK", 96, "Disp", t["fg"]))
+    b.append(text(40, 248, "HEY, I'M SHLOK", 104, "Disp", t["fg"]))
     b.append(text(42, 298, "Systems Architect & Distributed Runtimes Engineer.", 22, "Mono", t["dim"]))
     b.append(text(42, 352, "I build", 22, "MonoB", t["accent_bright"]))
     for i, s in enumerate(STATUS_LINES):
@@ -415,7 +434,7 @@ def bento(mode, data):
 
     # Card 2: Principles / Philosophy Card
     b.append(cell(840, 0, 440, 190, t))
-    b.append(label(870, 42, "SYSTEM INVARIANT", t))
+    b.append(label(870, 42, "WORDS I CODE BY", t))
     b.append(text(868, 96, "SIMPLICITY IS PREREQUISITE", 33, "Disp", t["fg"]))
     b.append(text(868, 138, "FOR RELIABILITY.", 33, "Disp", t["accent_bright"]))
     b.append(text(870, 172, "Edsger W. Dijkstra", 16, "Mono", t["dim"]))
@@ -449,7 +468,7 @@ def bento(mode, data):
             + "</g>"
         )
 
-    # Real Language Breakdown from user repositories
+    # Real Language Breakdown from user repositories (Animated growing multi-color bar + logos)
     b.append(cell(430, y, 430, 300, t))
     b.append(label(460, y + 42, "Languages in my repos", t))
     langs = data["languages"][:6]
@@ -478,7 +497,7 @@ def bento(mode, data):
     b.append(text(910, y + 204, "Sub-16ms telemetry, SQLite WAL", 16, "Mono", t["dim"]))
     b.append(text(910, y + 232, "storage & high-resilience kernels", 16, "Mono", t["dim"]))
 
-    # Row 3: Tech Stack Chips
+    # Row 3: Tech Stack Chips (Clean modern chips with official brand SVG icons)
     y = 740
     b.append(cell(0, y, W, 170, t))
     b.append(label(30, y + 42, "What I build with", t))
@@ -489,12 +508,12 @@ def bento(mode, data):
             x, yy = 30, yy + 52
         b.append(
             f'<g class="pop" style="animation-delay:{.08 * i:.2f}s">'
-            f'<rect x="{x}" y="{yy}" width="{wdt}" height="40" rx="20" fill="none" stroke="{t["fg"]}" stroke-opacity=".3" stroke-width="1.5"/>'
-            + logo(x + 16, yy + 11, 18, s, t)
+            f'<rect x="{x}" y="{yy}" width="{wdt}" height="40" rx="12" fill="none" stroke="{t["edge"]}" stroke-width="1.5"/>'
+            + logo(x + 14, yy + 10, 20, s, t)
             + text(x + 42, yy + 26, s, 17, "Mono", t["fg"])
             + "</g>"
         )
-        x += wdt + 10
+        x += wdt + 12
 
     # Row 4: Interests Marquee + Portfolio / Contact Banner
     y = 930
@@ -511,7 +530,7 @@ def bento(mode, data):
     return svg(1096, "".join(b), css, title="Shlok Tiwari, Systems Architect")
 
 
-# ---------------------------------------------------------------- activity heatmap
+# ---------------------------------------------------------------- activity heatmap (CLEAN, NO PILLS)
 
 
 def activity(mode, data):
@@ -541,6 +560,7 @@ def activity(mode, data):
         f'<rect x="{width - 30 - (5 - i) * 24}" y="34" width="18" height="18" rx="4" fill="{levels[i] or t["empty"]}"/>'
         for i in range(5)
     )
+    # Pure clean header with zero pill boxes
     body = (
         cell(0, 0, W, 280, t)
         + label(30, 48, f"{data['total']:,} contributions in the last year", t)
@@ -560,10 +580,10 @@ def activity(mode, data):
     return svg(296, body, css, title=f"{data['total']} contributions in the last year")
 
 
-# ---------------------------------------------------------------- project icons & cards
+# ---------------------------------------------------------------- project icons & cards (6 BEST PROJECTS)
 
 ICONS = {
-    # Custom 64x64 animated kinetic vector icons tailored for Shlok's systems
+    # Custom animated kinetic vector icons tailored for Shlok's systems
     "semcache": (
         '<rect x="12" y="14" width="40" height="36" rx="8" stroke-width="3"/>'
         '<path d="M20 26h24M20 38h14" stroke-width="3"/>'
@@ -575,6 +595,17 @@ ICONS = {
         '<circle cx="32" cy="34" r="8" stroke-width="3"/>'
         '<g class="dial"><line x1="32" y1="34" x2="32" y2="28" stroke-width="3"/></g>',
         ".dial{animation:spin 4s linear infinite;transform-origin:32px 34px}@keyframes spin{to{transform:rotate(360deg)}}",
+    ),
+    "sentinel": (
+        '<path d="M32 8L14 16v16c0 14 18 24 18 24s18-10 18-24V16L32 8z" stroke-width="3"/>'
+        '<g class="sweep"><circle cx="32" cy="32" r="10" stroke-width="2"/><line x1="32" y1="32" x2="40" y2="24" stroke-width="2.5"/></g>',
+        ".sweep{animation:spin 2.5s linear infinite;transform-origin:32px 32px}@keyframes spin{to{transform:rotate(360deg)}}",
+    ),
+    "aegis": (
+        '<path d="M12 18h40v30a6 6 0 0 1-6 6H18a6 6 0 0 1-6-6V18z" stroke-width="3"/>'
+        '<path d="M22 18V12a10 10 0 0 1 20 0v6" stroke-width="3"/>'
+        '<g class="lock"><circle cx="32" cy="32" r="4" fill="currentColor"/><line x1="32" y1="36" x2="32" y2="44" stroke-width="3"/></g>',
+        ".lock{animation:nod 2s ease-in-out infinite}@keyframes nod{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}",
     ),
     "strata": (
         '<path d="M10 20l22-10 22 10-22 10z" stroke-width="3"/>'
@@ -599,16 +630,16 @@ def card(mode, p, data):
     where = "repo ↗" if p["repo"] else "live ↗"
     meta = f"★ {stars}  ·  {where}" if stars else where
     body = (
-        cell(1, 1, 618, 218, t)
+        cell(1, 1, 618, 228, t)
         + f'<rect x="28" y="28" width="104" height="104" rx="24" fill="{t["accent_bright"]}"/>'
         + f'<g transform="translate(40 40) scale(1.25)" fill="none" stroke="{t["bg"]}" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" color="{t["bg"]}">{draw}</g>'
-        + text(156, 62, p["tag"].upper(), 13, "Mono", t["accent_bright"], spacing=".14em")
+        + text(156, 62, p["tag"].upper(), 14, "Mono", t["accent_bright"], spacing=".14em")
         + text(154, 118, p["name"].upper(), 56, "Disp", t["fg"])
-        + text(30, 172, p["line"], 17, "Mono", t["fg"])
-        + text(30, 200, p["stack"], 14, "Mono", t["dim"])
-        + text(590, 200, meta, 14, "Mono", t["dim"], "end")
+        + text(30, 174, p["line"], 17, "Mono", t["fg"])
+        + text(30, 206, p["stack"], 14, "Mono", t["dim"])
+        + text(590, 206, meta, 14, "Mono", t["dim"], "end")
     )
-    return svg(234, body, motion, w=620, title=f'{p["name"]}: {p["line"]}')
+    return svg(244, body, motion, w=620, title=f'{p["name"]}: {p["line"]}')
 
 
 def footer(mode):
