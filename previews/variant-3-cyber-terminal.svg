@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="820" viewBox="0 0 1280 820">
+    <defs>
+      <linearGradient id="scanline" x1="0" y1="0" x2="0" y2="100%">
+        <stop offset="0%" stop-color="#000000" stop-opacity="0.3"/>
+        <stop offset="50%" stop-color="#00FF9D" stop-opacity="0.03"/>
+        <stop offset="100%" stop-color="#000000" stop-opacity="0.3"/>
+      </linearGradient>
+    </defs>
+    <style>
+      .glow { filter: drop-shadow(0 0 6px #00FF9D); }
+      .cursor { animation: blink 0.8s infinite; }
+      @keyframes blink { 50% { opacity: 0; } }
+      .wave_osc { animation: osc 3s linear infinite; }
+      @keyframes osc { to { stroke-dashoffset: -200; } }
+    </style>
+    <rect width="1280" height="820" fill="#050C08"/>
+    
+    <!-- Top Terminal Frame -->
+    <rect x="30" y="30" width="1220" height="340" rx="16" fill="#07140D" stroke="#0D3823" stroke-width="2"/>
+    
+    <!-- Terminal Bar -->
+    <rect x="30" y="30" width="1220" height="36" rx="16" fill="#0A1C12"/>
+    <circle cx="55" cy="48" r="6" fill="#FF5F56"/>
+    <circle cx="75" cy="48" r="6" fill="#FFBD2E"/>
+    <circle cx="95" cy="48" r="6" fill="#27C93F"/>
+    <text x="640" y="53" text-anchor="middle" fill="#00FF9D" font-family="monospace" font-size="12" opacity="0.6">shlok@distributed-node-01: ~ (kernel: aarch64-darwin)</text>
+
+    <!-- Terminal Output -->
+    <text x="60" y="105" fill="#00FF9D" font-family="monospace" font-size="14" opacity="0.7">$ whoami --verbose</text>
+    <text x="60" y="165" fill="#FFFFFF" class="glow" font-family="monospace" font-size="54" font-weight="900">SHLOK TIWARI</text>
+    <text x="60" y="210" fill="#00FF9D" font-family="monospace" font-size="18">> Systems Architect | Local-First AI Engines | eBPF &amp; Low Latency</text>
+    
+    <!-- Oscilloscope telemetry -->
+    <g transform="translate(60, 240)">
+      <path d="M 0 40 Q 50 10, 100 40 T 200 40 T 300 40 T 400 40 T 500 40 T 600 40 T 700 40 T 800 40" fill="none" stroke="#00FF9D" stroke-width="2.5" class="wave_osc glow" stroke-dasharray="16 8"/>
+      <text x="0" y="80" fill="#4B8C6C" font-family="monospace" font-size="12">RUNTIME METRICS: 100% HEALTHY // 0.00% PACKET LOSS // 0 ZOMBIE NODES</text>
+    </g>
+
+    <!-- 6 Cyber Project Cards -->
+    <text x="30" y="415" fill="#00FF9D" font-family="monospace" font-size="13">// SYSTEM REPOSITORIES [ONLINE: 6/6]</text>
+    
+        <g transform="translate(30, 440)">
+          <rect width="395" height="150" rx="12" fill="#07140D" stroke="#0D3823" stroke-width="1.5"/>
+          <text x="25" y="36" fill="#00FF9D" class="glow" font-family="monospace" font-size="18" font-weight="700">[SemCache]</text>
+          <text x="25" y="58" fill="#4B8C6C" font-family="monospace" font-size="11">Vector Cache Engine</text>
+          <text x="25" y="92" fill="#C5E8D6" font-family="monospace" font-size="13">Zero-redundancy AI answer memory</text>
+          <text x="25" y="128" fill="#00FF9D" font-family="monospace" font-size="11" opacity="0.8">> STACK: PYTHON / COSINE</text>
+        </g>
+        
+        <g transform="translate(445, 440)">
+          <rect width="395" height="150" rx="12" fill="#07140D" stroke="#0D3823" stroke-width="1.5"/>
+          <text x="25" y="36" fill="#00FF9D" class="glow" font-family="monospace" font-size="18" font-weight="700">[AgentVault]</text>
+          <text x="25" y="58" fill="#4B8C6C" font-family="monospace" font-size="11">Flight Recorder</text>
+          <text x="25" y="92" fill="#C5E8D6" font-family="monospace" font-size="13">Cryptographic audit trail for agents</text>
+          <text x="25" y="128" fill="#00FF9D" font-family="monospace" font-size="11" opacity="0.8">> STACK: RUST / WAL</text>
+        </g>
+        
+        <g transform="translate(860, 440)">
+          <rect width="395" height="150" rx="12" fill="#07140D" stroke="#0D3823" stroke-width="1.5"/>
+          <text x="25" y="36" fill="#00FF9D" class="glow" font-family="monospace" font-size="18" font-weight="700">[Sentinel-AI]</text>
+          <text x="25" y="58" fill="#4B8C6C" font-family="monospace" font-size="11">Mach Kernel Guard</text>
+          <text x="25" y="92" fill="#C5E8D6" font-family="monospace" font-size="13">Sub-16ms Apple Silicon memory sentry</text>
+          <text x="25" y="128" fill="#00FF9D" font-family="monospace" font-size="11" opacity="0.8">> STACK: C++ / EBPF</text>
+        </g>
+        
+        <g transform="translate(30, 610)">
+          <rect width="395" height="150" rx="12" fill="#07140D" stroke="#0D3823" stroke-width="1.5"/>
+          <text x="25" y="36" fill="#00FF9D" class="glow" font-family="monospace" font-size="18" font-weight="700">[Aegis]</text>
+          <text x="25" y="58" fill="#4B8C6C" font-family="monospace" font-size="11">Process Sandbox</text>
+          <text x="25" y="92" fill="#C5E8D6" font-family="monospace" font-size="13">Confinement boundary against bad shell commands</text>
+          <text x="25" y="128" fill="#00FF9D" font-family="monospace" font-size="11" opacity="0.8">> STACK: RUST / SEATBELT</text>
+        </g>
+        
+        <g transform="translate(445, 610)">
+          <rect width="395" height="150" rx="12" fill="#07140D" stroke="#0D3823" stroke-width="1.5"/>
+          <text x="25" y="36" fill="#00FF9D" class="glow" font-family="monospace" font-size="18" font-weight="700">[Strata]</text>
+          <text x="25" y="58" fill="#4B8C6C" font-family="monospace" font-size="11">Fleet Coordinator</text>
+          <text x="25" y="92" fill="#C5E8D6" font-family="monospace" font-size="13">Multi-worker parallel orchestration loop</text>
+          <text x="25" y="128" fill="#00FF9D" font-family="monospace" font-size="11" opacity="0.8">> STACK: TS / FLEET</text>
+        </g>
+        
+        <g transform="translate(860, 610)">
+          <rect width="395" height="150" rx="12" fill="#07140D" stroke="#0D3823" stroke-width="1.5"/>
+          <text x="25" y="36" fill="#00FF9D" class="glow" font-family="monospace" font-size="18" font-weight="700">[Cortex]</text>
+          <text x="25" y="58" fill="#4B8C6C" font-family="monospace" font-size="11">Cognitive Mesh</text>
+          <text x="25" y="92" fill="#C5E8D6" font-family="monospace" font-size="13">Autonomous task-splitting router</text>
+          <text x="25" y="128" fill="#00FF9D" font-family="monospace" font-size="11" opacity="0.8">> STACK: LOCAL LLM / ARCH</text>
+        </g>
+        </svg>

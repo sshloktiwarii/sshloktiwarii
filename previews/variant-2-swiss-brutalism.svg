@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="820" viewBox="0 0 1280 820">
+    <defs>
+      <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+        <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1F1F1F" stroke-width="1"/>
+      </pattern>
+    </defs>
+    <style>
+      .blink { animation: bl 1s steps(1) infinite; }
+      @keyframes bl { 50% { opacity: 0; } }
+    </style>
+    <rect width="1280" height="820" fill="#0A0A0A"/>
+    <rect width="1280" height="820" fill="url(#grid)"/>
+
+    <!-- Hero Blueprint Card -->
+    <rect x="30" y="30" width="1220" height="330" fill="#111111" stroke="#333333" stroke-width="2"/>
+    <rect x="30" y="30" width="1220" height="8" fill="#FFC32A"/>
+    
+    <text x="60" y="80" fill="#888888" font-family="monospace" font-size="13" letter-spacing="4">SPECIFICATION // REF: 2026-SYS</text>
+    <text x="60" y="165" fill="#FFFFFF" font-family="'Helvetica Neue', Arial, sans-serif" font-size="76" font-weight="900" letter-spacing="-2">SHLOK TIWARI</text>
+    <text x="60" y="215" fill="#FFC32A" font-family="monospace" font-size="20" font-weight="700">HIGH-THROUGHPUT SYSTEMS &amp; DISTRIBUTED RUNTIMES</text>
+    
+    <!-- Blueprint Telemetry Data Box -->
+    <g transform="translate(60, 255)">
+      <rect x="0" y="0" width="1160" height="75" fill="#080808" stroke="#222222" stroke-width="1.5"/>
+      <text x="30" y="32" fill="#666666" font-family="monospace" font-size="11">LATENCY TARGET</text>
+      <text x="30" y="55" fill="#FFFFFF" font-family="monospace" font-size="16" font-weight="700">&lt; 16.0 MS</text>
+
+      <text x="280" y="32" fill="#666666" font-family="monospace" font-size="11">DATABASE KERNEL</text>
+      <text x="280" y="55" fill="#FFFFFF" font-family="monospace" font-size="16" font-weight="700">SQLITE WAL ENGINE</text>
+
+      <text x="560" y="32" fill="#666666" font-family="monospace" font-size="11">CORE TOOLCHAIN</text>
+      <text x="560" y="55" fill="#FFFFFF" font-family="monospace" font-size="16" font-weight="700">RUST / GO / C++</text>
+
+      <text x="860" y="32" fill="#666666" font-family="monospace" font-size="11">ENGINEERING STATUS</text>
+      <text x="860" y="55" fill="#FFC32A" font-family="monospace" font-size="16" font-weight="700">OPERATIONAL <tspan class="blink">_</tspan></text>
+    </g>
+
+    <!-- 6 Brutalist Grid Modules -->
+    <text x="30" y="405" fill="#888888" font-family="monospace" font-size="13" letter-spacing="3">// DEPLOYED SUBSYSTEMS (06)</text>
+    
+        <g transform="translate(30, 430)">
+          <rect width="395" height="155" fill="#111111" stroke="#2A2A2A" stroke-width="1.5"/>
+          <rect width="4" height="155" fill="#FFC32A"/>
+          <text x="25" y="32" fill="#FFC32A" font-family="monospace" font-size="12" font-weight="700">01 // SEMCACHE</text>
+          <text x="25" y="62" fill="#FFFFFF" font-family="'Helvetica Neue', Arial, sans-serif" font-size="20" font-weight="800">Semantic AI Cache</text>
+          <text x="25" y="92" fill="#999999" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13">Remembers AI answers to save compute and eliminate repe...</text>
+          <text x="25" y="132" fill="#555555" font-family="monospace" font-size="11" font-weight="700">PYTHON / VECTOR</text>
+        </g>
+        
+        <g transform="translate(445, 430)">
+          <rect width="395" height="155" fill="#111111" stroke="#2A2A2A" stroke-width="1.5"/>
+          <rect width="4" height="155" fill="#FFC32A"/>
+          <text x="25" y="32" fill="#FFC32A" font-family="monospace" font-size="12" font-weight="700">02 // AGENTVAULT</text>
+          <text x="25" y="62" fill="#FFFFFF" font-family="'Helvetica Neue', Arial, sans-serif" font-size="20" font-weight="800">Audit Flight Recorder</text>
+          <text x="25" y="92" fill="#999999" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13">Tamper-proof execution telemetry and black-box recorder...</text>
+          <text x="25" y="132" fill="#555555" font-family="monospace" font-size="11" font-weight="700">RUST / SQLITE WAL</text>
+        </g>
+        
+        <g transform="translate(860, 430)">
+          <rect width="395" height="155" fill="#111111" stroke="#2A2A2A" stroke-width="1.5"/>
+          <rect width="4" height="155" fill="#FFC32A"/>
+          <text x="25" y="32" fill="#FFC32A" font-family="monospace" font-size="12" font-weight="700">03 // SENTINEL-AI</text>
+          <text x="25" y="62" fill="#FFFFFF" font-family="'Helvetica Neue', Arial, sans-serif" font-size="20" font-weight="800">Kernel Memory Tripwire</text>
+          <text x="25" y="92" fill="#999999" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13">Protects unified system memory against SSD swap death s...</text>
+          <text x="25" y="132" fill="#555555" font-family="monospace" font-size="11" font-weight="700">C++ / MACH KERNEL</text>
+        </g>
+        
+        <g transform="translate(30, 605)">
+          <rect width="395" height="155" fill="#111111" stroke="#2A2A2A" stroke-width="1.5"/>
+          <rect width="4" height="155" fill="#FFC32A"/>
+          <text x="25" y="32" fill="#FFC32A" font-family="monospace" font-size="12" font-weight="700">04 // AEGIS SANDBOX</text>
+          <text x="25" y="62" fill="#FFFFFF" font-family="'Helvetica Neue', Arial, sans-serif" font-size="20" font-weight="800">Deterministic Gateway</text>
+          <text x="25" y="92" fill="#999999" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13">Restricts autonomous agents from raw disk writes or key...</text>
+          <text x="25" y="132" fill="#555555" font-family="monospace" font-size="11" font-weight="700">RUST / LANDLOCK</text>
+        </g>
+        
+        <g transform="translate(445, 605)">
+          <rect width="395" height="155" fill="#111111" stroke="#2A2A2A" stroke-width="1.5"/>
+          <rect width="4" height="155" fill="#FFC32A"/>
+          <text x="25" y="32" fill="#FFC32A" font-family="monospace" font-size="12" font-weight="700">05 // STRATA</text>
+          <text x="25" y="62" fill="#FFFFFF" font-family="'Helvetica Neue', Arial, sans-serif" font-size="20" font-weight="800">Fleet Orchestrator</text>
+          <text x="25" y="92" fill="#999999" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13">Dispatches and manages concurrent distributed agent wor...</text>
+          <text x="25" y="132" fill="#555555" font-family="monospace" font-size="11" font-weight="700">TYPESCRIPT / DISTRIBUTED</text>
+        </g>
+        
+        <g transform="translate(860, 605)">
+          <rect width="395" height="155" fill="#111111" stroke="#2A2A2A" stroke-width="1.5"/>
+          <rect width="4" height="155" fill="#FFC32A"/>
+          <text x="25" y="32" fill="#FFC32A" font-family="monospace" font-size="12" font-weight="700">06 // CORTEX</text>
+          <text x="25" y="62" fill="#FFFFFF" font-family="'Helvetica Neue', Arial, sans-serif" font-size="20" font-weight="800">Multi-Agent Brain</text>
+          <text x="25" y="92" fill="#999999" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13">Autonomous routing layer for decomposing large multi-do...</text>
+          <text x="25" y="132" fill="#555555" font-family="monospace" font-size="11" font-weight="700">LOCAL LLMS / ROUTER</text>
+        </g>
+        </svg>

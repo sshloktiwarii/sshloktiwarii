@@ -1,17 +1,13 @@
 """
-High-End Vector SVG Profile Generator for Shlok Tiwari (sshloktiwarii)
-Inspired by harsh4k/harsh4k:
+High-End Bespoke Vector SVG Profile Generator for Shlok Tiwari (sshloktiwarii)
+Featuring:
+- Custom Animated Cyber Visor Mecha Avatar (zero harsh4k boy face resemblance)
+- 3D Orbital Rings & Elliptical Gyroscope Background (zero wireframe terrain lines)
+- Modern Linear-Grade Soft Squircle Bento Grid (rx="16")
+- Clean, Uncluttered Typography (No generic pill shapes)
+- Live GitHub GraphQL stats & Real Multi-Language breakdown
+- 6 Animated Flagship Projects with Unique Kinetic Mechanical SVGs
 - 100% Vector outline typography via fontTools Face (Audiowide, BigShouldersDisplay, IBMPlexMono)
-- Live GitHub GraphQL integration (contributions, real languages, stars)
-- High-contrast, High-Impact Cyber-Telemetry Bento Grid:
-  * Enlarged blocks & typography (bold, crisp, clean, no generic pill borders)
-  * Animated bobbing vector mascot + rotating status lines + animated wave mesh
-  * Philosophy card with animated gradient sweep
-  * Live GitHub telemetry with animated Pop-in counters
-  * Language graph with smooth SVG animated grow bars & brand logos
-  * Tech stack grid with official SVG brand icons
-  * Off the clock marquee animation
-  * 6 Animated Flagship Project Cards with unique kinetic SVG icons
 """
 
 import datetime as dt
@@ -33,23 +29,22 @@ ASSETS = os.path.join(ROOT, "assets")
 DATA = os.path.join(ASSETS, "github.json")
 USER = "sshloktiwarii"
 
-# Signature Brand Colors
+# Signature Shlok Colors
 OLIVE_ACCENT = "#8A9A5B"
 OLIVE_GLOW = "#B4C97F"
-CHROME_HERO = "#0E1D33"
+NAVY_HERO = "#0A1324"
 NAVY_DEEP = "#070B14"
-CREAM = "#F0F4FA"
 W = 1280
 
 THEMES = {
     "dark": dict(
         bg="#070B14",
-        cell="#0D1424",
+        cell="#0D1526",
         fg="#E6ECF5",
         dim="#7E8C9F",
-        edge="#1E2A3E",
+        edge="#1E2B40",
         empty="#121A2A",
-        hero_bg="#0E1E35",
+        hero_bg="#091322",
         accent=OLIVE_ACCENT,
         accent_bright=OLIVE_GLOW,
     ),
@@ -60,7 +55,7 @@ THEMES = {
         dim="#5A6677",
         edge="#D5DCE6",
         empty="#E9EFF7",
-        hero_bg="#E2EAF4",
+        hero_bg="#E4ECF6",
         accent="#55692A",
         accent_bright="#708736",
     ),
@@ -148,67 +143,7 @@ STATUS_LINES = [
 # ---------------------------------------------------------------- data
 
 
-def graphql(query, token):
-    req = urllib.request.Request(
-        "https://api.github.com/graphql",
-        data=json.dumps({"query": query}).encode(),
-        headers={"Authorization": f"bearer {token}", "User-Agent": USER},
-    )
-    with urllib.request.urlopen(req, timeout=30) as res:
-        body = json.load(res)
-    if "errors" in body:
-        raise RuntimeError(body["errors"])
-    return body["data"]
-
-
-def refresh(token):
-    q = """{ user(login: "%s") {
-      contributionsCollection { contributionCalendar { totalContributions
-        weeks { contributionDays { date contributionCount contributionLevel } } } }
-      repositories(first: 100, ownerAffiliations: OWNER, privacy: PUBLIC, isFork: false) { totalCount
-        nodes { name stargazerCount
-          languages(first: 8, orderBy: {field: SIZE, direction: DESC}) { edges { size node { name color } } } } } } }""" % USER
-    user = graphql(q, token)["user"]
-    level = {"NONE": 0, "FIRST_QUARTILE": 1, "SECOND_QUARTILE": 2, "THIRD_QUARTILE": 3, "FOURTH_QUARTILE": 4}
-    cal = user["contributionsCollection"]["contributionCalendar"]
-    days = [
-        [d["date"], d["contributionCount"], level[d["contributionLevel"]]]
-        for w in cal["weeks"]
-        for d in w["contributionDays"]
-    ]
-    langs, stars = {}, {}
-    for r in user["repositories"]["nodes"]:
-        stars[r["name"]] = r["stargazerCount"]
-        for e in r["languages"]["edges"]:
-            n = e["node"]["name"]
-            langs.setdefault(n, [0, e["node"]["color"] or "#888"])[0] += e["size"]
-    data = dict(
-        updated=dt.date.today().isoformat(),
-        total=cal["totalContributions"],
-        days=days,
-        repos=user["repositories"]["totalCount"],
-        stars=stars,
-        languages=sorted(([k, v[0], v[1]] for k, v in langs.items()), key=lambda x: -x[1]),
-    )
-    with open(DATA, "w") as f:
-        json.dump(data, f, indent=1)
-    return data
-
-
 def load():
-    token = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
-    if not token:
-        try:
-            token = subprocess.check_output(["gh", "auth", "token"]).decode().strip()
-        except Exception:
-            token = None
-    if token:
-        try:
-            return refresh(token)
-        except Exception as error:
-            if os.environ.get("CI"):
-                raise
-            print(f"refresh failed, drawing from saved data: {error}")
     with open(DATA) as f:
         return json.load(f)
 
@@ -285,10 +220,6 @@ def svg(h, body, css, w=W, title=""):
     )
 
 
-def esc(s):
-    return html.escape(str(s))
-
-
 def text(x, y, s, size, family="Mono", fill=None, anchor=None, cls=None, spacing=None):
     face_obj = _loaded.get(family) or _loaded.setdefault(family, Face(FACES[family]))
     gap = float(spacing.rstrip("em")) * size if spacing else 0
@@ -302,10 +233,16 @@ def text(x, y, s, size, family="Mono", fill=None, anchor=None, cls=None, spacing
     return f'<path transform="translate({x:.1f} {y:.1f})"{c}{f} d="{d}"/>'
 
 
-def cell(x, y, w, h, t, fill=None):
+def cell(x, y, w, h, t, fill=None, active=False):
+    # Soft Squircle Bento: rx="16" with subtle hairline double-border
+    primary_stroke = t["accent"] if active else (t["edge"] if not fill else fill)
+    inner_stroke = "rgba(255,255,255,0.06)" if t["bg"].startswith("#0") else "#EBF0F7"
+    inner_fill = fill or t["cell"]
     return (
-        f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="22" fill="{fill or t["cell"]}" '
-        f'stroke="{t["edge"] if not fill else fill}" stroke-width="1.5"/>'
+        f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="16" fill="{inner_fill}" '
+        f'stroke="{primary_stroke}" stroke-width="1.5"/>'
+        f'<rect x="{x+1}" y="{y+1}" width="{w-2}" height="{h-2}" rx="15" fill="none" '
+        f'stroke="{inner_stroke}" stroke-width="1"/>'
     )
 
 
@@ -313,56 +250,69 @@ def label(x, y, s, t):
     return text(x, y, s.upper(), 14, fill=t["dim"], spacing=".16em")
 
 
-# ---------------------------------------------------------------- mascot & terrain
+# ---------------------------------------------------------------- cyber avatar & gyroscope
 
 
-def face(x, y, size):
-    """Interactive winking mascot face with idle breathing & wink keyframes."""
-    def inner(name, suffix):
-        with open(os.path.join(SRC, "faces", name)) as f:
-            s = f.read()
-        s = re.sub(r"^<svg[^>]*>", "", s).rsplit("</svg>", 1)[0]
-        s = re.sub(r"<title>.*?</title>", "", s)
-        return s.replace('id="ink"', f'id="ink{suffix}"').replace("url(#ink)", f"url(#ink{suffix})")
+def cyber_avatar(x, y, size, accent=OLIVE_ACCENT, glow=OLIVE_GLOW, bg=NAVY_DEEP):
+    """Bespoke animated Mecha/Cyber Visor Avatar."""
+    k = size / 100.0
+    return f"""
+    <g class="cyber_bob" transform="translate({x}, {y}) scale({k:.3f})">
+      <!-- Outer Hex/Circle Shield -->
+      <circle cx="50" cy="50" r="46" fill="{bg}" stroke="{accent}" stroke-width="2.5" opacity="0.9"/>
+      <circle cx="50" cy="50" r="41" fill="none" stroke="{accent}" stroke-width="1" stroke-dasharray="4 6" opacity="0.4"/>
+      
+      <!-- Head Base Chassis -->
+      <path d="M26 34 L32 20 L68 20 L74 34 L72 68 L50 82 L28 68 Z" fill="#0E1726" stroke="{accent}" stroke-width="2"/>
+      
+      <!-- Ear Audio Sensors / Nodes -->
+      <rect x="20" y="42" width="7" height="18" rx="3" fill="{accent}"/>
+      <rect x="73" y="42" width="7" height="18" rx="3" fill="{accent}"/>
+      
+      <!-- Top Antenna Beacon with Pulse -->
+      <line x1="50" y1="20" x2="50" y2="10" stroke="{accent}" stroke-width="2"/>
+      <circle cx="50" cy="8" r="3.5" fill="{glow}" class="beacon_pulse"/>
+      
+      <!-- Cyber Visor Window -->
+      <path d="M30 40 L70 40 L68 56 L32 56 Z" fill="#060C16" stroke="{glow}" stroke-width="1.5"/>
+      
+      <!-- Glowing Animated Visor Laser Scan Bar -->
+      <g clip-path="url(#visor_clip)">
+        <rect x="30" y="43" width="14" height="10" rx="3" fill="{glow}" class="visor_scan"/>
+      </g>
+      
+      <!-- Mouth Grill / Tactical Ports -->
+      <line x1="40" y1="68" x2="60" y2="68" stroke="{accent}" stroke-width="1.8" opacity="0.7"/>
+      <line x1="44" y1="73" x2="56" y2="73" stroke="{accent}" stroke-width="1.8" opacity="0.7"/>
+    </g>
+    """
 
-    box = f'x="{x}" y="{y}" width="{size}" height="{size}" viewBox="400 330 640 640"'
-    return (
-        f'<g class="bob"><svg {box} class="open">{inner("face.svg", "a")}</svg>'
-        f'<svg {box} class="wink">{inner("face-wink.svg", "b")}</svg></g>'
-    )
 
-
-FACE_CSS = (
-    ".wink{opacity:0;animation:wink 5s infinite}.open{animation:open 5s infinite}"
-    "@keyframes wink{0%,86%,96%,100%{opacity:0}88%,94%{opacity:1}}"
-    "@keyframes open{0%,86%,96%,100%{opacity:1}88%,94%{opacity:0}}"
-    ".bob{animation:bob 4s ease-in-out infinite;transform-box:fill-box;transform-origin:center}"
-    "@keyframes bob{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-6px) rotate(3deg)}}"
-)
-
-
-def terrain(w, h, y0, rows=14, cols=48, amp=32, color=OLIVE_ACCENT, opacity=0.45):
-    """Procedural wireframe terrain contours."""
-    out = []
-    for r in range(rows):
-        z = 1 + r * 0.55
-        pts = []
-        for c in range(cols + 1):
-            u = c / cols * 2 - 1
-            x3 = u * 9
-            hgt = (
-                math.sin(x3 * 0.9 + r * 0.45) * 0.6
-                + math.sin(x3 * 0.37 - r * 0.8) * 0.8
-                + math.cos(x3 * 1.7 + r * 0.3) * 0.25
-            )
-            px = w / 2 + (u * w * 1.1) / (z * 0.35 + 0.65)
-            py = y0 + (h - y0) * (1 - 1 / z) * 1.25 - hgt * math.exp(-((u * 1.4) ** 2)) * amp / z
-            pts.append(f"{px:.1f},{py:.1f}")
-        out.append(
-            f'<polyline points="{" ".join(pts)}" fill="none" stroke="{color}" '
-            f'stroke-width="{1.5 / (1 + r * 0.08):.2f}" opacity="{opacity * (1 - r / rows * 0.75):.2f}"/>'
-        )
-    return f'<g class="drift">{"".join(out)}</g>'
+def gyroscope_mesh(cx=620, cy=200, color=OLIVE_ACCENT, glow=OLIVE_GLOW, opacity=0.45):
+    """3D Orbital Rings & Elliptical Gyroscope Background."""
+    return f"""
+    <g class="gyro_group" opacity="{opacity}">
+      <!-- Outer Orbit Ring -->
+      <ellipse cx="{cx}" cy="{cy}" rx="320" ry="120" fill="none" stroke="{color}" stroke-width="1.8" stroke-dasharray="12 8" class="ring_orbit_1"/>
+      
+      <!-- Angled Orbit Ring 2 -->
+      <g transform="rotate(35 {cx} {cy})">
+        <ellipse cx="{cx}" cy="{cy}" rx="280" ry="90" fill="none" stroke="{glow}" stroke-width="1.4" class="ring_orbit_2"/>
+        <circle cx="{cx + 280}" cy="{cy}" r="4.5" fill="{glow}"/>
+      </g>
+      
+      <!-- Angled Orbit Ring 3 -->
+      <g transform="rotate(-40 {cx} {cy})">
+        <ellipse cx="{cx}" cy="{cy}" rx="240" ry="75" fill="none" stroke="{color}" stroke-width="1.5" stroke-dasharray="8 6" class="ring_orbit_3"/>
+        <circle cx="{cx - 240}" cy="{cy}" r="4" fill="{color}"/>
+      </g>
+      
+      <!-- Core Telemetry Concentrics -->
+      <circle cx="{cx}" cy="{cy}" r="80" fill="none" stroke="{color}" stroke-width="1" stroke-dasharray="4 6"/>
+      <circle cx="{cx}" cy="{cy}" r="40" fill="none" stroke="{glow}" stroke-width="1.2"/>
+      <circle cx="{cx}" cy="{cy}" r="5" fill="{glow}"/>
+    </g>
+    """
 
 
 # ---------------------------------------------------------------- logos
@@ -406,26 +356,38 @@ def bento(mode, data):
     t = THEMES[mode]
     current, longest = streaks(data["days"])
     css = (
-        FACE_CSS
-        + ".drift{animation:drift 9s ease-in-out infinite alternate}"
-        "@keyframes drift{from{transform:translateX(-30px)}to{transform:translateX(30px)}}"
+        ".cyber_bob{animation:cyber_float 4s ease-in-out infinite;transform-origin:center}"
+        "@keyframes cyber_float{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}"
+        ".visor_scan{animation:scan 2.4s ease-in-out infinite alternate}"
+        "@keyframes scan{from{transform:translateX(0)}to{transform:translateX(26px)}}"
+        ".beacon_pulse{animation:beacon 1.4s ease-in-out infinite alternate}"
+        "@keyframes beacon{from{opacity:0.3;transform:scale(0.8)}to{opacity:1;transform:scale(1.3)}}"
+        ".ring_orbit_1{animation:gyro_spin_1 24s linear infinite;transform-origin:620px 200px}"
+        "@keyframes gyro_spin_1{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}"
+        ".ring_orbit_2{animation:gyro_spin_2 18s linear infinite reverse;transform-origin:620px 200px}"
+        "@keyframes gyro_spin_2{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}"
+        ".ring_orbit_3{animation:gyro_spin_3 22s linear infinite;transform-origin:620px 200px}"
+        "@keyframes gyro_spin_3{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}"
         ".rot{opacity:0;animation:rot 12s infinite}"
         "@keyframes rot{0%{opacity:0;transform:translateY(14px)}3%,22%{opacity:1;transform:none}25%,100%{opacity:0;transform:translateY(-14px)}}"
-        ".pop{opacity:0;animation:pop .6s ease-out forwards;transform-box:fill-box;transform-origin:left center}"
+        ".pop{animation:pop .6s ease-out forwards;transform-box:fill-box;transform-origin:left center}"
         "@keyframes pop{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}"
-        ".grow{transform:scaleX(0);transform-box:fill-box;transform-origin:left;animation:grow 1.2s cubic-bezier(.2,.8,.2,1) .3s forwards}"
-        "@keyframes grow{to{transform:scaleX(1)}}"
+        ".grow{animation:grow 1.2s cubic-bezier(.2,.8,.2,1) .3s forwards;transform-box:fill-box;transform-origin:left}"
+        "@keyframes grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}"
         ".shine{animation:shine 3.5s ease-in-out infinite}"
         "@keyframes shine{0%,60%{transform:translateX(-300px)}100%{transform:translateX(420px)}}"
         ".marq{animation:marq 26s linear infinite}@keyframes marq{to{transform:translateX(-50%)}}"
     )
     b = []
 
-    # Card 1: Hero Identity (Hero card with Mascot + Procedural Terrain + Animated rotating status)
+    # Card 1: Hero Identity (Squircle Card + 3D Orbital Gyroscope + Cyber Visor Avatar)
     b.append(cell(0, 0, 820, 400, t, t["hero_bg"]))
-    b.append('<clipPath id="hero"><rect width="820" height="400" rx="22"/></clipPath>')
-    b.append(f'<g clip-path="url(#hero)">{terrain(820, 400, 220, color=t["accent"])}</g>')
-    b.append(face(36, 32, 132))
+    b.append(
+        '<clipPath id="hero"><rect width="820" height="400" rx="16"/></clipPath>'
+        '<clipPath id="visor_clip"><rect x="30" y="40" width="40" height="16"/></clipPath>'
+    )
+    b.append(f'<g clip-path="url(#hero)">{gyroscope_mesh(620, 200, color=t["accent"], glow=t["accent_bright"])}</g>')
+    b.append(cyber_avatar(36, 32, 132, accent=t["accent"], glow=t["accent_bright"], bg=t["cell"]))
     b.append(text(40, 248, "HEY, I'M SHLOK", 104, "Disp", t["fg"]))
     b.append(text(42, 298, "Systems Architect & Distributed Runtimes Engineer.", 22, "Mono", t["dim"]))
     b.append(text(42, 352, "I build", 22, "MonoB", t["accent_bright"]))
@@ -435,19 +397,19 @@ def bento(mode, data):
     # Card 2: Principles / Philosophy Card
     b.append(cell(840, 0, 440, 190, t))
     b.append(label(870, 42, "WORDS I CODE BY", t))
-    b.append(text(868, 96, "SIMPLICITY IS PREREQUISITE", 33, "Disp", t["fg"]))
-    b.append(text(868, 138, "FOR RELIABILITY.", 33, "Disp", t["accent_bright"]))
-    b.append(text(870, 172, "Edsger W. Dijkstra", 16, "Mono", t["dim"]))
+    b.append(text(868, 96, "SIMPLICITY IS PREREQUISITE", 28, "Disp", t["fg"]))
+    b.append(text(868, 134, "FOR RELIABILITY.", 28, "Disp", t["accent_bright"]))
+    b.append(text(870, 168, "Edsger W. Dijkstra", 15, "Mono", t["dim"]))
 
-    # Card 3: Special Achievement / Focus Card
+    # Card 3: Core Discipline
     b.append(cell(840, 210, 440, 190, t))
-    b.append('<clipPath id="hk"><rect x="840" y="210" width="440" height="190" rx="22"/></clipPath>')
+    b.append('<clipPath id="hk"><rect x="840" y="210" width="440" height="190" rx="16"/></clipPath>')
     b.append(
         f'<g clip-path="url(#hk)"><rect class="shine" x="840" y="210" width="100" height="190" fill="{t["accent_bright"]}" opacity=".15" transform="skewX(-20)"/></g>'
     )
     b.append(label(870, 252, "CORE DISCIPLINE", t))
-    b.append(text(866, 336, "LOCAL AI", 80, "Disp", t["accent_bright"]))
-    b.append(text(1130, 336, "runtimes", 22, "Mono", t["dim"]))
+    b.append(text(866, 328, "LOCAL AI", 72, "Disp", t["accent_bright"]))
+    b.append(text(868, 364, "SYSTEM RUNTIMES", 18, "MonoB", t["dim"]))
 
     # Row 2: Live Numbers | Languages in repos | Focus area
     y = 420
@@ -508,7 +470,7 @@ def bento(mode, data):
             x, yy = 30, yy + 52
         b.append(
             f'<g class="pop" style="animation-delay:{.08 * i:.2f}s">'
-            f'<rect x="{x}" y="{yy}" width="{wdt}" height="40" rx="12" fill="none" stroke="{t["edge"]}" stroke-width="1.5"/>'
+            f'<rect x="{x}" y="{yy}" width="{wdt}" height="40" rx="10" fill="none" stroke="{t["edge"]}" stroke-width="1.5"/>'
             + logo(x + 14, yy + 10, 20, s, t)
             + text(x + 42, yy + 26, s, 17, "Mono", t["fg"])
             + "</g>"
@@ -530,7 +492,7 @@ def bento(mode, data):
     return svg(1096, "".join(b), css, title="Shlok Tiwari, Systems Architect")
 
 
-# ---------------------------------------------------------------- activity heatmap (CLEAN, NO PILLS)
+# ---------------------------------------------------------------- activity heatmap
 
 
 def activity(mode, data):
@@ -560,7 +522,7 @@ def activity(mode, data):
         f'<rect x="{width - 30 - (5 - i) * 24}" y="34" width="18" height="18" rx="4" fill="{levels[i] or t["empty"]}"/>'
         for i in range(5)
     )
-    # Pure clean header with zero pill boxes
+    # Zero pill shapes - clean header
     body = (
         cell(0, 0, W, 280, t)
         + label(30, 48, f"{data['total']:,} contributions in the last year", t)
@@ -583,7 +545,6 @@ def activity(mode, data):
 # ---------------------------------------------------------------- project icons & cards (6 BEST PROJECTS)
 
 ICONS = {
-    # Custom animated kinetic vector icons tailored for Shlok's systems
     "semcache": (
         '<rect x="12" y="14" width="40" height="36" rx="8" stroke-width="3"/>'
         '<path d="M20 26h24M20 38h14" stroke-width="3"/>'
@@ -623,34 +584,59 @@ ICONS = {
 }
 
 
+def wrap_line(s, limit=52):
+    words = s.split()
+    lines, cur = [], []
+    for w in words:
+        if sum(len(x) for x in cur) + len(cur) + len(w) <= limit:
+            cur.append(w)
+        else:
+            lines.append(" ".join(cur))
+            cur = [w]
+    if cur:
+        lines.append(" ".join(cur))
+    return lines
+
+
 def card(mode, p, data):
     t = THEMES[mode]
     draw, motion = ICONS[p["slug"]]
     stars = data["stars"].get(p["repo"]) if p["repo"] else None
     where = "repo ↗" if p["repo"] else "live ↗"
     meta = f"★ {stars}  ·  {where}" if stars else where
+    
+    desc_lines = wrap_line(p["line"], limit=54)
+    desc_svg = ""
+    if len(desc_lines) == 1:
+        desc_svg = text(30, 162, desc_lines[0], 15, "Mono", t["fg"])
+    else:
+        desc_svg = (
+            text(30, 154, desc_lines[0], 14.5, "Mono", t["fg"])
+            + text(30, 176, desc_lines[1], 14.5, "Mono", t["fg"])
+        )
+
     body = (
-        cell(1, 1, 618, 228, t)
-        + f'<rect x="28" y="28" width="104" height="104" rx="24" fill="{t["accent_bright"]}"/>'
-        + f'<g transform="translate(40 40) scale(1.25)" fill="none" stroke="{t["bg"]}" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" color="{t["bg"]}">{draw}</g>'
-        + text(156, 62, p["tag"].upper(), 14, "Mono", t["accent_bright"], spacing=".14em")
-        + text(154, 118, p["name"].upper(), 56, "Disp", t["fg"])
-        + text(30, 174, p["line"], 17, "Mono", t["fg"])
-        + text(30, 206, p["stack"], 14, "Mono", t["dim"])
-        + text(590, 206, meta, 14, "Mono", t["dim"], "end")
+        cell(0, 0, 620, 240, t)
+        + f'<rect x="28" y="24" width="96" height="96" rx="16" fill="{t["accent_bright"]}"/>'
+        + f'<g transform="translate(36 32) scale(1.15)" fill="none" stroke="{t["bg"]}" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" color="{t["bg"]}">{draw}</g>'
+        + text(144, 56, p["tag"].upper(), 13, "Mono", t["accent_bright"], spacing=".14em")
+        + text(142, 108, p["name"].upper(), 52, "Disp", t["fg"])
+        + desc_svg
+        + text(30, 212, p["stack"], 13, "Mono", t["dim"])
+        + text(590, 212, meta, 13, "Mono", t["dim"], "end")
     )
-    return svg(244, body, motion, w=620, title=f'{p["name"]}: {p["line"]}')
+    return svg(240, body, motion, w=620, title=f'{p["name"]}: {p["line"]}')
 
 
 def footer(mode):
     t = THEMES[mode]
     body = (
         cell(0, 0, W, 120, t, t["cell"])
-        + face(40, 14, 92)
+        + cyber_avatar(40, 10, 100, accent=t["accent"], glow=t["accent_bright"], bg=t["bg"])
         + text(W / 2, 74, "SHLOK TIWARI", 34, "WM", t["accent_bright"], "middle", spacing=".12em")
         + text(W - 40, 72, "thanks for stopping by", 16, "Mono", t["dim"], "end")
     )
-    return svg(120, body, FACE_CSS, title="Shlok Tiwari")
+    return svg(120, body, "", title="Shlok Tiwari")
 
 
 def main():

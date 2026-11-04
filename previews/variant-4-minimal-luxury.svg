@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="820" viewBox="0 0 1280 820">
+    <rect width="1280" height="820" fill="#0A0D14"/>
+    
+    <!-- Hero Card -->
+    <rect x="30" y="30" width="1220" height="340" rx="28" fill="#101522" stroke="#1E273A" stroke-width="1.5"/>
+    <text x="80" y="100" fill="#75859E" font-family="system-ui, sans-serif" font-size="13" font-weight="600" letter-spacing="4">SYSTEMS &amp; DISTRIBUTED ARCHITECTURE</text>
+    <text x="80" y="180" fill="#FFFFFF" font-family="system-ui, sans-serif" font-size="72" font-weight="800" letter-spacing="-2">Shlok Tiwari</text>
+    <text x="80" y="230" fill="#8E9EB5" font-family="system-ui, sans-serif" font-size="20">Crafting resilient, local-first computing engines and autonomous agent fleets.</text>
+    
+    <!-- Editorial Badges -->
+    <g transform="translate(80, 280)">
+      <text x="0" y="18" fill="#FFFFFF" font-family="monospace" font-size="14">C++ · Rust · Go · TypeScript · SQLite WAL</text>
+    </g>
+
+    <!-- 6 Refined Project Cards -->
+    <text x="30" y="415" fill="#75859E" font-family="system-ui, sans-serif" font-size="14" font-weight="600" letter-spacing="2">FLAGSHIP PROJECTS</text>
+    
+        <g transform="translate(30, 440)">
+          <rect width="395" height="150" rx="20" fill="#101522" stroke="#1E273A" stroke-width="1.5"/>
+          <text x="30" y="42" fill="#FFFFFF" font-family="system-ui, sans-serif" font-size="20" font-weight="700">SemCache</text>
+          <text x="30" y="66" fill="#6A7A91" font-family="system-ui, sans-serif" font-size="13">Vector Answer Memory</text>
+          <text x="30" y="100" fill="#A3B2C7" font-family="system-ui, sans-serif" font-size="14">Instant responses for AI queries without redundant compute.</text>
+          <text x="30" y="130" fill="#4E5D73" font-family="monospace" font-size="12">Python / Cosine</text>
+        </g>
+        
+        <g transform="translate(445, 440)">
+          <rect width="395" height="150" rx="20" fill="#101522" stroke="#1E273A" stroke-width="1.5"/>
+          <text x="30" y="42" fill="#FFFFFF" font-family="system-ui, sans-serif" font-size="20" font-weight="700">AgentVault</text>
+          <text x="30" y="66" fill="#6A7A91" font-family="system-ui, sans-serif" font-size="13">Flight Recorder</text>
+          <text x="30" y="100" fill="#A3B2C7" font-family="system-ui, sans-serif" font-size="14">Tamper-proof execution telemetry and black-box recorder.</text>
+          <text x="30" y="130" fill="#4E5D73" font-family="monospace" font-size="12">Rust / SQLite WAL</text>
+        </g>
+        
+        <g transform="translate(860, 440)">
+          <rect width="395" height="150" rx="20" fill="#101522" stroke="#1E273A" stroke-width="1.5"/>
+          <text x="30" y="42" fill="#FFFFFF" font-family="system-ui, sans-serif" font-size="20" font-weight="700">Sentinel-AI</text>
+          <text x="30" y="66" fill="#6A7A91" font-family="system-ui, sans-serif" font-size="13">Unified Memory Sentry</text>
+          <text x="30" y="100" fill="#A3B2C7" font-family="system-ui, sans-serif" font-size="14">Protects Apple Silicon against swap spirals during LLM loads.</text>
+          <text x="30" y="130" fill="#4E5D73" font-family="monospace" font-size="12">C++ / Mach Kernel</text>
+        </g>
+        
+        <g transform="translate(30, 610)">
+          <rect width="395" height="150" rx="20" fill="#101522" stroke="#1E273A" stroke-width="1.5"/>
+          <text x="30" y="42" fill="#FFFFFF" font-family="system-ui, sans-serif" font-size="20" font-weight="700">Aegis Sandbox</text>
+          <text x="30" y="66" fill="#6A7A91" font-family="system-ui, sans-serif" font-size="13">Security Gateway</text>
+          <text x="30" y="100" fill="#A3B2C7" font-family="system-ui, sans-serif" font-size="14">Deterministic boundary against unsafe shell commands.</text>
+          <text x="30" y="130" fill="#4E5D73" font-family="monospace" font-size="12">Rust / Seatbelt</text>
+        </g>
+        
+        <g transform="translate(445, 610)">
+          <rect width="395" height="150" rx="20" fill="#101522" stroke="#1E273A" stroke-width="1.5"/>
+          <text x="30" y="42" fill="#FFFFFF" font-family="system-ui, sans-serif" font-size="20" font-weight="700">Strata</text>
+          <text x="30" y="66" fill="#6A7A91" font-family="system-ui, sans-serif" font-size="13">Fleet Control Center</text>
+          <text x="30" y="100" fill="#A3B2C7" font-family="system-ui, sans-serif" font-size="14">Coordinates multi-agent fleets across parallel workstreams.</text>
+          <text x="30" y="130" fill="#4E5D73" font-family="monospace" font-size="12">TypeScript / Fleet</text>
+        </g>
+        
+        <g transform="translate(860, 610)">
+          <rect width="395" height="150" rx="20" fill="#101522" stroke="#1E273A" stroke-width="1.5"/>
+          <text x="30" y="42" fill="#FFFFFF" font-family="system-ui, sans-serif" font-size="20" font-weight="700">Cortex</text>
+          <text x="30" y="66" fill="#6A7A91" font-family="system-ui, sans-serif" font-size="13">Cognitive Router</text>
+          <text x="30" y="100" fill="#A3B2C7" font-family="system-ui, sans-serif" font-size="14">Multi-agent dispatch core for complex distributed workflows.</text>
+          <text x="30" y="130" fill="#4E5D73" font-family="monospace" font-size="12">Local LLMs</text>
+        </g>
+        </svg>

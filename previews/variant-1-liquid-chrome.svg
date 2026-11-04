@@ -1,0 +1,119 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="820" viewBox="0 0 1280 820">
+    <defs>
+      <linearGradient id="chrome_grad" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#121A29"/>
+        <stop offset="25%" stop-color="#8A98A8"/>
+        <stop offset="50%" stop-color="#FFFFFF"/>
+        <stop offset="75%" stop-color="#8A98A8"/>
+        <stop offset="100%" stop-color="#121A29"/>
+      </linearGradient>
+      <linearGradient id="radar_glow" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#B4C97F" stop-opacity="0.8"/>
+        <stop offset="100%" stop-color="#8A9A5B" stop-opacity="0.1"/>
+      </linearGradient>
+      <filter id="bloom">
+        <feGaussianBlur stdDeviation="3" result="blur"/>
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
+    <style>
+      .sweep { animation: sweep 4s linear infinite; transform-origin: 1100px 180px; }
+      @keyframes sweep { to { transform: rotate(360deg); } }
+      .wave { animation: wave 6s ease-in-out infinite alternate; }
+      @keyframes wave { from { transform: translateY(-8px); } to { transform: translateY(8px); } }
+      .pulse { animation: p 2s ease-in-out infinite; }
+      @keyframes p { 0%,100% { opacity: 0.3; } 50% { opacity: 0.9; } }
+    </style>
+    <rect width="1280" height="820" fill="#070B14"/>
+    
+    <!-- Hero Bento Card -->
+    <rect x="30" y="30" width="1220" height="340" rx="24" fill="#0D1424" stroke="#1E2A3E" stroke-width="1.5"/>
+    <g class="wave"><polyline points="0,285.0 30,293.2 60,296.3 90,295.1 120,291.2 150,286.2 180,282.0 210,279.7 240,279.9 270,282.0 300,285.1 330,287.5 360,287.5 390,283.7 420,275.2 450,262.4 480,246.3 510,228.8 540,212.3 570,199.5 600,192.4 630,192.4 660,199.8 690,213.9 720,232.7 750,253.7 780,274.2 810,291.7 840,304.0 870,310.3 900,310.6 930,305.9 960,297.8 990,288.6 1020,280.0 1050,273.5 1080,269.8 1110,268.6 1140,269.1 1170,269.6 1200,268.7 1230,264.9 1260,257.5 1290,246.8" fill="none" stroke="url(#chrome_grad)" stroke-width="2.40" opacity="0.70"/><polyline points="0,324.4 30,334.5 60,337.6 90,334.1 120,325.2 150,312.9 180,299.5 210,287.0 240,277.2 270,270.9 300,268.0 330,267.5 360,268.2 390,268.2 420,266.3 450,261.7 480,254.4 510,245.2 540,235.8 570,228.1 600,224.3 630,225.7 660,233.4 690,247.1 720,265.4 750,286.4 780,307.3 810,325.3 840,338.1 870,344.0 900,342.5 930,334.1 960,320.4 990,303.7 1020,286.5 1050,271.1 1080,259.4 1110,252.1 1140,249.2 1170,249.8 1200,252.4 1230,255.2 1260,256.7 1290,256.0" fill="none" stroke="url(#chrome_grad)" stroke-width="2.22" opacity="0.64"/><polyline points="0,351.4 30,360.1 60,361.6 90,355.6 120,342.9 150,325.4 180,305.6 210,286.1 240,269.4 270,257.4 300,250.9 330,249.7 360,252.9 390,258.7 420,265.2 450,270.8 480,274.2 510,275.1 540,274.0 570,272.1 600,270.9 630,272.2 660,277.1 690,286.2 720,299.2 750,314.7 780,330.8 810,345.0 840,354.9 870,358.7 900,355.2 930,344.7 960,328.1 990,307.7 1020,286.0 1050,266.0 1080,250.0 1110,239.8 1140,236.1 1170,238.6 1200,245.9 1230,256.1 1260,267.1 1290,276.9" fill="none" stroke="url(#chrome_grad)" stroke-width="2.04" opacity="0.58"/><polyline points="0,360.9 30,366.4 60,366.0 90,358.9 120,345.4 150,326.8 180,305.3 210,283.8 240,265.0 270,251.2 300,244.1 330,244.1 360,250.8 390,262.4 420,276.9 450,291.8 480,305.0 510,315.0 540,321.1 570,323.5 600,323.4 630,322.1 660,321.5 690,322.7 720,326.5 750,332.7 780,340.3 810,347.8 840,353.2 870,354.6 900,350.7 930,340.8 960,325.7 990,306.6 1020,286.0 1050,266.5 1080,250.8 1110,241.0 1140,238.6 1170,243.6 1200,255.1 1230,271.3 1260,289.7 1290,307.7" fill="none" stroke="url(#chrome_grad)" stroke-width="1.86" opacity="0.52"/><polyline points="0,353.7 30,355.8 60,354.8 90,349.2 120,338.8 150,324.0 180,306.4 210,288.2 240,272.0 270,260.3 300,254.9 330,256.9 360,266.3 390,281.7 420,301.2 450,322.0 480,341.4 510,357.1 540,367.5 570,371.8 600,370.7 630,365.3 660,357.5 690,349.4 720,342.5 750,338.1 780,336.3 810,336.5 840,337.6 870,337.9 900,335.8 930,330.3 960,320.9 990,308.3 1020,293.8 1050,279.5 1080,267.9 1110,261.0 1140,260.6 1170,267.2 1200,280.6 1230,299.2 1260,320.6 1290,342.2" fill="none" stroke="url(#chrome_grad)" stroke-width="1.68" opacity="0.46"/><polyline points="0,335.9 30,336.1 60,336.4 90,335.3 120,331.6 150,325.0 180,315.8 210,305.2 240,295.2 270,287.9 300,285.2 330,288.5 360,298.2 390,313.7 420,333.4 450,355.0 480,375.5 510,392.3 540,403.3 570,407.2 600,403.8 630,394.1 660,379.8 690,363.5 720,347.5 750,333.9 780,324.2 810,318.8 840,317.3 870,318.4 900,320.6 930,322.2 960,321.9 990,319.1 1020,314.2 1050,308.1 1080,302.5 1110,299.2 1140,300.1 1170,306.1 1200,317.6 1230,333.7 1260,352.9 1290,372.6" fill="none" stroke="url(#chrome_grad)" stroke-width="1.50" opacity="0.40"/><polyline points="0,317.7 30,317.8 60,321.5 90,326.9 120,332.2 150,335.9 180,337.3 210,336.3 240,334.0 270,331.5 300,330.8 330,333.3 360,340.0 390,351.2 420,366.0 450,382.9 480,399.4 510,413.1 540,421.8 570,423.7 600,418.2 630,405.8 660,388.0 690,367.1 720,345.9 750,327.2 780,313.0 810,304.9 840,303.0 870,306.7 900,314.5 930,324.2 960,333.9 990,341.9 1020,347.1 1050,349.6 1080,349.8 1110,349.3 1140,349.5 1170,352.1 1200,357.8 1230,366.9 1260,378.8 1290,391.9" fill="none" stroke="url(#chrome_grad)" stroke-width="1.32" opacity="0.34"/><polyline points="0,309.2 30,311.1 60,318.9 90,331.0 120,344.9 150,358.5 180,369.9 210,377.8 240,382.1 270,383.3 300,382.8 330,382.1 360,382.8 390,385.8 420,391.7 450,399.7 480,408.5 510,416.4 540,421.2 570,421.3 600,415.5 630,403.6 660,386.6 690,366.4 720,345.4 750,326.5 780,312.1 810,304.3 840,303.9 870,310.6 900,323.3 930,339.9 960,357.7 990,374.3 1020,387.7 1050,396.7 1080,401.0 1110,401.2 1140,398.7 1170,395.3 1200,392.6 1230,391.8 1260,393.4 1290,397.1" fill="none" stroke="url(#chrome_grad)" stroke-width="1.14" opacity="0.28"/></g>
+    
+    <!-- Radar Telemetry Widget -->
+    <g transform="translate(1000, 80)">
+      <circle cx="100" cy="100" r="80" fill="none" stroke="#1E2A3E" stroke-width="1.5"/>
+      <circle cx="100" cy="100" r="55" fill="none" stroke="#1E2A3E" stroke-width="1.5" stroke-dasharray="4 4"/>
+      <circle cx="100" cy="100" r="30" fill="none" stroke="#1E2A3E" stroke-width="1.5"/>
+      <circle cx="100" cy="100" r="4" fill="#B4C97F" filter="url(#bloom)"/>
+      <g class="sweep">
+        <line x1="100" y1="100" x2="100" y2="20" stroke="#B4C97F" stroke-width="2" filter="url(#bloom)"/>
+        <path d="M100 100 L100 20 A80 80 0 0 1 156 44 Z" fill="url(#radar_glow)"/>
+      </g>
+      <text x="100" y="205" text-anchor="middle" fill="#7E8C9F" font-family="monospace" font-size="11" letter-spacing="2">SYSTEM RADAR ACTIVE</text>
+    </g>
+
+    <!-- Hero Content -->
+    <text x="70" y="90" fill="#B4C97F" font-family="monospace" font-size="14" font-weight="700" letter-spacing="3">// SYSTEM RUNTIME ARCHITECT</text>
+    <text x="70" y="165" fill="#FFFFFF" font-family="system-ui, sans-serif" font-size="64" font-weight="900" letter-spacing="-1">SHLOK TIWARI</text>
+    <text x="70" y="210" fill="#7E8C9F" font-family="monospace" font-size="18">Distributed AI Engines · Kernel Telemetry · Zero-Overhead Runtimes</text>
+    
+    <!-- Quick Specs -->
+    <g transform="translate(70, 260)">
+      <rect x="0" y="0" width="160" height="38" rx="8" fill="#121A2A" stroke="#25354D"/>
+      <text x="80" y="24" text-anchor="middle" fill="#EAEFF7" font-family="monospace" font-size="13">RUST / C++</text>
+      
+      <rect x="175" y="0" width="160" height="38" rx="8" fill="#121A2A" stroke="#25354D"/>
+      <text x="255" y="24" text-anchor="middle" fill="#EAEFF7" font-family="monospace" font-size="13">GO / PYTHON</text>
+
+      <rect x="350" y="0" width="180" height="38" rx="8" fill="#121A2A" stroke="#25354D"/>
+      <text x="440" y="24" text-anchor="middle" fill="#B4C97F" font-family="monospace" font-size="13">SUB-16MS WAL</text>
+    </g>
+
+    <!-- 6 Projects Row (2x3) -->
+    <text x="30" y="415" fill="#EAEFF7" font-family="system-ui, sans-serif" font-size="24" font-weight="800">Flagship Systems</text>
+    
+        <g transform="translate(30, 440)">
+          <rect width="395" height="150" rx="16" fill="#0D1424" stroke="#1E2A3E" stroke-width="1.5"/>
+          <circle cx="36" cy="36" r="14" fill="#B4C97F" opacity="0.2"/>
+          <circle cx="36" cy="36" r="6" fill="#B4C97F"/>
+          <text x="65" y="42" fill="#FFFFFF" font-family="system-ui, sans-serif" font-size="20" font-weight="700">SemCache</text>
+          <text x="25" y="82" fill="#A4B3C6" font-family="system-ui, sans-serif" font-size="14">AI Answer Cache &amp; Vector Memory</text>
+          <text x="25" y="122" fill="#5F7085" font-family="monospace" font-size="12">Python · Vector Cosine · Fast RTT</text>
+        </g>
+        
+        <g transform="translate(445, 440)">
+          <rect width="395" height="150" rx="16" fill="#0D1424" stroke="#1E2A3E" stroke-width="1.5"/>
+          <circle cx="36" cy="36" r="14" fill="#688836" opacity="0.2"/>
+          <circle cx="36" cy="36" r="6" fill="#688836"/>
+          <text x="65" y="42" fill="#FFFFFF" font-family="system-ui, sans-serif" font-size="20" font-weight="700">AgentVault</text>
+          <text x="25" y="82" fill="#A4B3C6" font-family="system-ui, sans-serif" font-size="14">Deterministic Flight Recorder</text>
+          <text x="25" y="122" fill="#5F7085" font-family="monospace" font-size="12">Rust · SQLite WAL · Telemetry</text>
+        </g>
+        
+        <g transform="translate(860, 440)">
+          <rect width="395" height="150" rx="16" fill="#0D1424" stroke="#1E2A3E" stroke-width="1.5"/>
+          <circle cx="36" cy="36" r="14" fill="#B4C97F" opacity="0.2"/>
+          <circle cx="36" cy="36" r="6" fill="#B4C97F"/>
+          <text x="65" y="42" fill="#FFFFFF" font-family="system-ui, sans-serif" font-size="20" font-weight="700">Sentinel-AI</text>
+          <text x="25" y="82" fill="#A4B3C6" font-family="system-ui, sans-serif" font-size="14">Unified Memory Runaway Tripwire</text>
+          <text x="25" y="122" fill="#5F7085" font-family="monospace" font-size="12">C++ · Mach Microkernel · eBPF</text>
+        </g>
+        
+        <g transform="translate(30, 610)">
+          <rect width="395" height="150" rx="16" fill="#0D1424" stroke="#1E2A3E" stroke-width="1.5"/>
+          <circle cx="36" cy="36" r="14" fill="#688836" opacity="0.2"/>
+          <circle cx="36" cy="36" r="6" fill="#688836"/>
+          <text x="65" y="42" fill="#FFFFFF" font-family="system-ui, sans-serif" font-size="20" font-weight="700">Aegis</text>
+          <text x="25" y="82" fill="#A4B3C6" font-family="system-ui, sans-serif" font-size="14">Kernel-Enforced Agent Sandbox</text>
+          <text x="25" y="122" fill="#5F7085" font-family="monospace" font-size="12">Rust · Landlock · Apple Seatbelt</text>
+        </g>
+        
+        <g transform="translate(445, 610)">
+          <rect width="395" height="150" rx="16" fill="#0D1424" stroke="#1E2A3E" stroke-width="1.5"/>
+          <circle cx="36" cy="36" r="14" fill="#B4C97F" opacity="0.2"/>
+          <circle cx="36" cy="36" r="6" fill="#B4C97F"/>
+          <text x="65" y="42" fill="#FFFFFF" font-family="system-ui, sans-serif" font-size="20" font-weight="700">Strata</text>
+          <text x="25" y="82" fill="#A4B3C6" font-family="system-ui, sans-serif" font-size="14">Multi-Agent Fleet Orchestrator</text>
+          <text x="25" y="122" fill="#5F7085" font-family="monospace" font-size="12">TypeScript · Distributed Runtime</text>
+        </g>
+        
+        <g transform="translate(860, 610)">
+          <rect width="395" height="150" rx="16" fill="#0D1424" stroke="#1E2A3E" stroke-width="1.5"/>
+          <circle cx="36" cy="36" r="14" fill="#688836" opacity="0.2"/>
+          <circle cx="36" cy="36" r="6" fill="#688836"/>
+          <text x="65" y="42" fill="#FFFFFF" font-family="system-ui, sans-serif" font-size="20" font-weight="700">Cortex</text>
+          <text x="25" y="82" fill="#A4B3C6" font-family="system-ui, sans-serif" font-size="14">Cognitive Core &amp; Agent Router</text>
+          <text x="25" y="122" fill="#5F7085" font-family="monospace" font-size="12">Local LLMs · Task Routing</text>
+        </g>
+        </svg>
