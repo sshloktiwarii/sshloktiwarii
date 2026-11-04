@@ -392,7 +392,7 @@ def bento(mode, data):
     # "I build" + rotating text with generous, fixed gap (zero overlap!)
     b.append(text(46, y + 248, "I build", 22, "MonoB", t["accent_bright"]))
     for i, s in enumerate(STATUS_LINES):
-        b.append(f'<g class="rot" style="animation-delay:{i * 3}s">{text(160, y + 248, s, 22, "MonoB", t["fg"])}</g>')
+        b.append(f'<g class="rot" style="animation-delay:{i * 3}s">{text(168, y + 248, s, 22, "MonoB", t["fg"])}</g>')
     b.append(text(46, y + 314, "LOCATION: MUMBAI, INDIA · HIGH-PERFORMANCE RUNTIMES & AGENT INFRASTRUCTURE", 13, "Mono", t["dim"]))
 
     # Section 3: Midsection Deck (1280x320)
