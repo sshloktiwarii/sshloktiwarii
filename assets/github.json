@@ -1,6 +1,6 @@
 {
  "updated": "2026-11-05",
- "total": 775,
+ "total": 791,
  "days": [
   [
    "2025-11-02",
@@ -1844,11 +1844,11 @@
   ],
   [
    "2026-11-05",
-   6,
+   22,
    1
   ]
  ],
- "repos": 26,
+ "repos": 25,
  "stars": {
   "AgentVault": 0,
   "Sentinel": 0,
@@ -1874,8 +1874,7 @@
   "aether": 0,
   "quorum": 0,
   "synapse": 0,
-  "sshloktiwarii": 0,
-  "VerciLumn": 0
+  "sshloktiwarii": 0
  },
  "languages": [
   [
@@ -1897,11 +1896,6 @@
    "Python",
    499112,
    "#3572A5"
-  ],
-  [
-   "Swift",
-   224965,
-   "#F05138"
   ],
   [
    "HTML",
@@ -1932,11 +1926,6 @@
    "Makefile",
    4456,
    "#427819"
-  ],
-  [
-   "Metal",
-   2653,
-   "#8f14e9"
   ],
   [
    "Ruby",
