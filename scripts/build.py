@@ -92,13 +92,13 @@ PROJECTS = [
         stack="C++ · Mach Kernel · Apple Silicon · eBPF",
     ),
     dict(
-        slug="aegis",
-        name="Aegis Sandbox",
-        repo="Aegis",
-        url="https://github.com/sshloktiwarii/Aegis",
-        line="Stops autonomous AI agents from running destructive terminal commands or leaking keys.",
-        tag="Agent Boundary",
-        stack="Rust · Landlock · Apple Seatbelt · AST Sanitizer",
+        slug="quorum",
+        name="Quorum",
+        repo="quorum",
+        url="https://github.com/sshloktiwarii/quorum",
+        line="Distributed Byzantine consensus engine and vector clock causal state tracker.",
+        tag="Consensus Core",
+        stack="Rust · Raft / PBFT · Vector Clocks · Distributed",
     ),
     dict(
         slug="strata",
@@ -589,11 +589,14 @@ ICONS = {
         '<g class="sweep"><circle cx="32" cy="32" r="10" stroke-width="2"/><line x1="32" y1="32" x2="40" y2="24" stroke-width="2"/></g>',
         ".sweep{animation:spin 2.5s linear infinite;transform-origin:32px 32px}@keyframes spin{to{transform:rotate(360deg)}}",
     ),
-    "aegis": (
-        '<path d="M14 18h36v28a4 4 0 0 1-4 4H18a4 4 0 0 1-4-4V18z" stroke-width="2.5"/>'
-        '<path d="M22 18V12a10 10 0 0 1 20 0v6" stroke-width="2.5"/>'
-        '<g class="lock"><circle cx="32" cy="32" r="3.5" fill="currentColor"/><line x1="32" y1="35" x2="32" y2="43" stroke-width="2.5"/></g>',
-        ".lock{animation:nod 2s ease-in-out infinite}@keyframes nod{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}",
+    "quorum": (
+        '<circle cx="20" cy="24" r="5" stroke-width="2.5"/>'
+        '<circle cx="44" cy="24" r="5" stroke-width="2.5"/>'
+        '<circle cx="32" cy="44" r="5" stroke-width="2.5"/>'
+        '<line x1="24" y1="24" x2="40" y2="24" stroke-width="2"/>'
+        '<line x1="23" y1="28" x2="29" y2="40" stroke-width="2"/>'
+        '<line x1="41" y1="28" x2="35" y2="40" stroke-width="2"/>',
+        ".mesh{animation:nod 2s ease-in-out infinite}@keyframes nod{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}",
     ),
     "strata": (
         '<path d="M12 20l20-9 20 9-20 9z" stroke-width="2.5"/>'
