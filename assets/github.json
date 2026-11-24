@@ -1,6 +1,6 @@
 {
  "updated": "2026-11-24",
- "total": 871,
+ "total": 878,
  "days": [
   [
    "2025-11-23",
@@ -1834,11 +1834,11 @@
   ],
   [
    "2026-11-24",
-   0,
-   0
+   7,
+   1
   ]
  ],
- "repos": 7,
+ "repos": 8,
  "stars": {
   "AgentVault": 0,
   "Sentinel": 0,
@@ -1846,9 +1846,15 @@
   "strata": 0,
   "quorum": 0,
   "sshloktiwarii": 0,
-  "VerciLumn": 0
+  "VerciLumn": 0,
+  "vouchproxy": 0
  },
  "languages": [
+  [
+   "Go",
+   419575,
+   "#00ADD8"
+  ],
   [
    "Rust",
    367539,
@@ -1863,11 +1869,6 @@
    "Python",
    333593,
    "#3572A5"
-  ],
-  [
-   "Go",
-   235800,
-   "#00ADD8"
   ],
   [
    "TypeScript",
